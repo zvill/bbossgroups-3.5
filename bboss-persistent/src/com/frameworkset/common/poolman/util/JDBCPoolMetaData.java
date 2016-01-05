@@ -79,7 +79,7 @@ public class JDBCPoolMetaData implements Serializable{
     
 
     /* TX ATTRIBUTES */
-    private int transactionIsolationLevel = PoolManConstants.DEFAULT_ISO_LEVEL;
+    private Integer transactionIsolationLevel = null;
     private int transactionTimeout = PoolManConstants.DEFAULT_USERTIMEOUT;
 
     /* QUERY CACHE ATTRIBUTES */
@@ -104,6 +104,7 @@ public class JDBCPoolMetaData implements Serializable{
      * 口令信息
      */
     private boolean encryptdbinfo = false;
+    private int queryfetchsize = 0;
     public String getJndiclass() {
 		return jndiclass;
 	}
@@ -346,11 +347,11 @@ public class JDBCPoolMetaData implements Serializable{
         this.transactionTimeout = n;
     }
 
-    public int getIsolationLevel() {
+    public Integer getIsolationLevel() {
         return this.transactionIsolationLevel;
     }
 
-    public void setIsolationLevel(int n) {
+    public void setIsolationLevel(Integer n) {
         this.transactionIsolationLevel = n;
     }
 
@@ -390,8 +391,10 @@ public class JDBCPoolMetaData implements Serializable{
 
     }
 
-    private String convertIsoToString(int n) {
+    private String convertIsoToString(Integer n) {
 
+    	if(n == null)
+    		return null;
         String result = null;
 
         switch (n) {
@@ -827,6 +830,7 @@ public class JDBCPoolMetaData implements Serializable{
 			this.setDatasourceParameters(getDatasourceParameters());
 			this.setSeqfunction(extenalInfo.getSeqfunction());
 			this.setRETURN_GENERATED_KEYS(extenalInfo.getRETURN_GENERATED_KEYS());
+			this.setQueryfetchsize(extenalInfo.getQueryfetchsize());
 //			this.setNeadGetGenerateKeys(extenalInfo.isNeadGetGenerateKeys());
 		}
 	}
@@ -987,6 +991,14 @@ public class JDBCPoolMetaData implements Serializable{
 
 	public void setRETURN_GENERATED_KEYS(boolean rETURN_GENERATED_KEYS) {
 		this.RETURN_GENERATED_KEYS = rETURN_GENERATED_KEYS;
+	}
+
+	public int getQueryfetchsize() {
+		return queryfetchsize;
+	}
+
+	public void setQueryfetchsize(int queryfetchsize) {
+		this.queryfetchsize = queryfetchsize;
 	}
 
 //	public boolean isNeadGetGenerateKeys() {

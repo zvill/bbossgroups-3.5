@@ -50,7 +50,6 @@ import org.frameworkset.persitent.util.SQLInfo;
 import org.frameworkset.persitent.util.SQLUtil;
 import org.frameworkset.util.BigFile;
 
-import com.frameworkset.common.poolman.NewSQLInfo;
 import com.frameworkset.common.poolman.handle.NullRowHandler;
 import com.frameworkset.common.poolman.handle.RowHandler;
 import com.frameworkset.common.poolman.handle.XMLMark;
@@ -58,11 +57,12 @@ import com.frameworkset.common.poolman.sql.PrimaryKey;
 import com.frameworkset.common.poolman.util.JDBCPool;
 import com.frameworkset.common.poolman.util.SQLManager;
 import com.frameworkset.common.poolman.util.StatementParser;
+import com.frameworkset.orm.adapter.DB;
 import com.frameworkset.util.FileUtil;
 
 /**
  * 执行预编sql语句
- * 
+ * set i parameterIndex the first parameter is 1, the second is 2, ...
  * @author biaoping.yin created on 2005-6-8 version 1.0
  */
 public class PreparedDBUtil extends DBUtil {
@@ -1274,6 +1274,8 @@ public class PreparedDBUtil extends DBUtil {
 		List resources = null;
 		try {
 			JDBCPool pool = SQLManager.getInstance().getPool(this.prepareDBName);
+			if(pool == null)
+				throw new NestedSQLException(new StringBuilder().append("执行sql[").append(this.Params.prepareSqlifo != null?this.Params.prepareSqlifo.getNewsql():"").append("]失败：数据源[").append(prepareDBName).append("]不存在，请检查数据源是否正确启动.").toString());
 			stmtInfo = new StatementInfo(this.prepareDBName, this.Params.prepareSqlifo,
 					
 					false, offset, this.pagesize, pool.isRobotQuery(), con,oraclerownum,true);
@@ -1416,7 +1418,7 @@ public class PreparedDBUtil extends DBUtil {
 				{
 					log.debug("Execute JDBC prepared query statement:"+stmtInfo.getSql());
 				}
-				
+				 stmtInfo.setPagineOrderBy(Params.getPagineOrderby());
 				statement = stmtInfo.preparePagineStatement(showsql);
 				if(!this.more)
 				{
@@ -1440,7 +1442,7 @@ public class PreparedDBUtil extends DBUtil {
 				{
 					log.debug("Execute JDBC prepared query statement:"+stmtInfo.getSql());
 				}
-				statement = stmtInfo.prepareStatement();
+				statement = stmtInfo.prepareQueryStatement();
 			}
 		
 			
@@ -1542,7 +1544,14 @@ public class PreparedDBUtil extends DBUtil {
 			{
 				return null;
 			}
-		} catch (SQLException e) {
+		}
+		catch(NestedSQLException e)
+		{
+			if(stmtInfo != null)
+				stmtInfo.errorHandle(e);
+			throw e;
+		}
+		catch (SQLException e) {
 //			try{
 //				
 //				log.error("Execute prepared sql[" + (stmtInfo != null?stmtInfo.getSql():null) + "] failed:" , e);
@@ -1973,7 +1982,7 @@ public class PreparedDBUtil extends DBUtil {
 					stmtInfo.cacheResultSetMetaData( res,true);				
 					this.meta = stmtInfo.getMeta();
 					if(rowhandler != null)
-						rowhandler.init(meta, stmtInfo.getDbname());
+						rowhandler.init(stmtInfo,meta, stmtInfo.getDbname());
 					resultMap = stmtInfo.buildResultMap(res, objectType, rowhandler, stmtInfo.getMaxsize(), true, result_type);
 	
 				}		
@@ -1984,7 +1993,7 @@ public class PreparedDBUtil extends DBUtil {
 					stmtInfo.absolute(res);
 					stmtInfo.cacheResultSetMetaData( res,true);	
 					if(rowhandler != null)
-						rowhandler.init(meta, stmtInfo.getDbname());
+						rowhandler.init(stmtInfo,meta, stmtInfo.getDbname());
 					this.meta = stmtInfo.getMeta();
 				}
 			}
@@ -1996,7 +2005,7 @@ public class PreparedDBUtil extends DBUtil {
 				stmtInfo.cacheResultSetMetaData( res,true);				
 				this.meta = stmtInfo.getMeta();
 				if(rowhandler != null)
-					rowhandler.init(meta, stmtInfo.getDbname());
+					rowhandler.init(stmtInfo,meta, stmtInfo.getDbname());
 				resultMap = stmtInfo.buildResultMap(res, objectType, rowhandler, stmtInfo.getMaxsize(), true, result_type);
 			}
 			return resultMap;
@@ -2036,7 +2045,7 @@ public class PreparedDBUtil extends DBUtil {
 			stmtInfo.cacheResultSetMetaData( res,false);
 			this.meta = stmtInfo.getMeta();
 			if(rowhandler != null)
-				rowhandler.init(meta, stmtInfo.getDbname());
+				rowhandler.init(stmtInfo,meta, stmtInfo.getDbname());
 			ResultMap resultMap = new ResultMap();
 //			if(result_type == ResultMap.type_maparray)
 //			{
@@ -3275,6 +3284,10 @@ public class PreparedDBUtil extends DBUtil {
 		preparedSelect(Params ,prepareDBName, new NewSQLInfo(sql), offset,
 				pagesize, oraclerownum,totalsize);
 	}
+	public void setPagineOrderby(String pagineOrderby)
+	{
+		this.Params.setPagineOrderby(pagineOrderby);
+	}
 	
 	/**
 	 * 创建预编译查询语句
@@ -3802,7 +3815,7 @@ public class PreparedDBUtil extends DBUtil {
 	 * @param data
 	 * @param method
 	 */
-	private void  addParam(int index,Object data,String method) throws SQLException
+	public void  addParam(int index,Object data,String method) throws SQLException
 	{
 		
 		Param param = buildParam();
@@ -3814,6 +3827,12 @@ public class PreparedDBUtil extends DBUtil {
 	}
 
 	// JDBC 2.0
+	/**
+	 * 
+	 * @param i parameterIndex the first parameter is 1, the second is 2, ...
+	 * @param x
+	 * @throws SQLException
+	 */
 	public void setArray(int i, Array x) throws SQLException {
 		try {
 			
@@ -4517,12 +4536,26 @@ public class PreparedDBUtil extends DBUtil {
 		}
 	}
 
+	/**
+	 * 
+	 * @param i parameterIndex the first parameter is 1, the second is 2, ...
+	 * @param o
+	 * @throws SQLException
+	 */
 	public void setObject(int i, Object o) throws SQLException {
 		try {
 //			if (this.action == SELECT)
 //				this.statement_count.setObject(i, o);
 //			this.statement.setObject(i, o);
-			this.addParam(i, o, Param.setObject_int_Object);
+			DB db = DBUtil.getDBAdapter(prepareDBName);
+			if(db == null)
+			{
+				this._setObject( i, o);
+			}
+			else
+			{
+				db.setObject(this, i, o);
+			}
 		} catch (SQLException e) {
 			this.resetFromSetMethod(e);
 		}
@@ -5011,7 +5044,28 @@ public class PreparedDBUtil extends DBUtil {
 	}
 
 
-
+	 public void _setObject(int i, Object o) throws SQLException
+	  {
+		  if(o == null || o instanceof java.sql.Timestamp)
+		  {
+			  this.addParam(i, o, Param.setObject_int_Object);
+		  }
+		  else if(o instanceof java.sql.Date)
+		  {
+			  o = new java.sql.Timestamp(((java.sql.Date)o).getTime());
+			  this.addParam(i, o, Param.setObject_int_Object);
+		  }
+		  else if(o instanceof java.util.Date)
+		  {
+			  o = new java.sql.Timestamp(((java.util.Date)o).getTime());
+			  this.addParam(i, o, Param.setObject_int_Object);
+		  }
+		  else
+		  {
+			  this.addParam(i, o, Param.setObject_int_Object);
+		  }
+		  
+	  }
 	
 	
 

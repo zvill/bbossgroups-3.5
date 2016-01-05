@@ -67,6 +67,10 @@ public class StatementInfo {
 
 	private boolean prepared = false;
 	private PagineSql paginesql;
+	private String pagineOrderBy;
+	public void setPagineOrderBy(String pagineOrderBy) {
+		this.pagineOrderBy = pagineOrderBy;
+	}
 	List resultSets;
 
 	private boolean oldautocommit = true;
@@ -208,12 +212,35 @@ public class StatementInfo {
 	}
 
 	public PreparedStatement prepareStatement() throws SQLException {
+//		PreparedStatement pstmt = this.con.prepareStatement(this.sql,this.getScrollType(dbname),this.getCursorType(dbname));
+//		this.statements.add(pstmt);
+//		return pstmt;
+		return _prepareStatement(false);
+	}
+	
+	private PreparedStatement _prepareStatement(boolean isquery) throws SQLException {
 		PreparedStatement pstmt = this.con.prepareStatement(this.sql,this.getScrollType(dbname),this.getCursorType(dbname));
+		if(isquery)
+		{
+			int fetchsize = this.pool.getJDBCPoolMetadata().getQueryfetchsize();
+			if(fetchsize > 0)
+				pstmt.setFetchSize(fetchsize);
+		}
 		this.statements.add(pstmt);
 		return pstmt;
 	}
+	
+	public PreparedStatement prepareQueryStatement() throws SQLException {
+//		PreparedStatement pstmt = this.con.prepareStatement(this.sql,this.getScrollType(dbname),this.getCursorType(dbname));
+//		int fetchsize = this.pool.getJDBCPoolMetadata().getQueryfetchsize();
+//		if(fetchsize > 0)
+//			pstmt.setFetchSize(fetchsize);
+//		this.statements.add(pstmt);
+//		return pstmt;
+		return _prepareStatement(true);
+	}
 
-	public PreparedStatement prepareStatement(String sql) throws SQLException {
+	private PreparedStatement _prepareStatement(String sql,boolean isquery) throws SQLException {
 		/**
 		 * must be removed.
 		 */
@@ -221,8 +248,26 @@ public class StatementInfo {
 			dbname = SQLManager.getInstance().getDefaultDBName();
 		sql = this.interceptorInf.convertSQL(sql, this.dbadapter.getDBTYPE(), dbname);
 		PreparedStatement pstmt = this.con.prepareStatement(sql,this.getScrollType(dbname),this.getCursorType(dbname));
+		if(isquery)
+		{
+			int fetchsize = this.pool.getJDBCPoolMetadata().getQueryfetchsize();
+			if(fetchsize > 0)
+				pstmt.setFetchSize(fetchsize);
+		}
 		this.statements.add(pstmt);
 		return pstmt;
+	}
+	public PreparedStatement prepareStatement(String sql) throws SQLException {
+//		/**
+//		 * must be removed.
+//		 */
+//		if(dbname == null)
+//			dbname = SQLManager.getInstance().getDefaultDBName();
+//		sql = this.interceptorInf.convertSQL(sql, this.dbadapter.getDBTYPE(), dbname);
+//		PreparedStatement pstmt = this.con.prepareStatement(sql,this.getScrollType(dbname),this.getCursorType(dbname));
+//		this.statements.add(pstmt);
+//		return pstmt;
+		return _prepareStatement(sql,false);
 	}
 	
 	public PreparedStatement prepareStatement(String sql,boolean getgenkeys) throws SQLException {
@@ -271,7 +316,7 @@ public class StatementInfo {
 			paginesql = getDBPagineSqlForOracle(true);
 		}
 		
-		return prepareStatement(paginesql.getSql());
+		return _prepareStatement(paginesql.getSql(),true);
 
 	}
 
@@ -322,7 +367,12 @@ public class StatementInfo {
 	}
 
 	public void absolute(ResultSet rs) throws SQLException {
-		if (paginesql.getSql().equals(getSql()) && rs != null) {
+//		if (paginesql.getSql().equals(getSql()) && rs != null) {
+//			if (getOffset() > 0L) {
+//				rs.absolute((int) getOffset());
+//			}
+//		}
+		if (!paginesql.isRebuilded() && rs != null) {
 			if (getOffset() > 0L) {
 				rs.absolute((int) getOffset());
 			}
@@ -331,10 +381,12 @@ public class StatementInfo {
 
 	public PagineSql paginesql(boolean prepared) {
 		if (paginesql == null) {
-			paginesql = new PagineSql(getSql(),prepared);
+			
 			if (this.rownum == null) {
 				if (isRobotquery())
 					paginesql = getDBPagineSql(prepared);
+				else
+					paginesql = new PagineSql(getSql(),prepared);
 			} else {
 				paginesql = getDBPagineSqlForOracle(prepared);
 			}
@@ -751,7 +803,7 @@ public class StatementInfo {
         		if(rowHandler == null)
         		{
         		    xhdl = new XMLRowHandler();
-        		    xhdl.init(this.getMeta(), this.getDbname());
+        		    xhdl.init(this,this.getMeta(), this.getDbname());
         		    rowHandler = xhdl;
         		    isxmlhandler = true;
         		}
@@ -759,7 +811,7 @@ public class StatementInfo {
         		{
         		    isxmlhandler = true;
         		    xhdl = (XMLRowHandler)rowHandler;
-        		    xhdl.init(this.getMeta(), this.getDbname());
+        		    xhdl.init(this,this.getMeta(), this.getDbname());
         		}
         		
         		
@@ -1026,8 +1078,12 @@ public class StatementInfo {
 	 * @return
 	 */
 	public PagineSql getDBPagineSql(boolean prepared) {
-		return this.dbadapter
-				.getDBPagineSql(sql, offset, maxsize,prepared);
+		if(this.pagineOrderBy == null || pagineOrderBy.trim().equals(""))
+			return this.dbadapter
+					.getDBPagineSql(sql, offset, maxsize,prepared);
+		else
+			return this.dbadapter
+					.getDBPagineSql(sql, offset, maxsize,prepared,pagineOrderBy);
 
 	}
 

@@ -17,11 +17,13 @@
 		<tagclass>com.frameworkset.common.tag.pager.tags.PagerTag</tagclass>
 		<teiclass>com.frameworkset.common.tag.pager.tags.PagerTagExtraInfo</teiclass>
 		<bodycontent>JSP</bodycontent>
-		
 		<!-- 
 		moreQuery 如果分页查询时more查询，则设置为true，默认为false
 		more查询将影响index标签的展示效果，不会处理总记录数，因此
-		index标签将不再有总记录数输出，下一页溢时直接阻止查询并返回空值
+		index标签将不再有总记录数输出，下一页或者跳转没有获取到数据时直接阻止查询并返回空值
+		没有尾页的输出		
+		每页跳转输出
+		每页总记录数和总页数输出
 		 -->
 		<attribute>
 			<name>moreQuery</name>
@@ -388,7 +390,7 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		
-		<!-- 
+	    <!-- 
 		上下翻页如果没有连接时，是否添加a标记
         true（默认值） 添加，false不添加
 		 -->
@@ -489,14 +491,13 @@
 			<name>bgColor</name>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
+		<attribute>
+			<name>title</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
 		<!--标题国际化代码，如果代码在mvc国际化相关配置文件中不存在，则输出code-->
 		<attribute>
 			<name>titlecode</name>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		
-		<attribute>
-			<name>title</name>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<!--指定标题所对应的属性字段列索引-->
@@ -506,6 +507,10 @@
 		</attribute>
 		<attribute>
 			<name>sort</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>desc</name>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
@@ -767,8 +772,7 @@
 		<attribute>
 			<name>autosort</name>
 			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		
+		</attribute>		
 		<!-- 
 		  position属性用来指定集合中数据对象的位置，对应位置上的对象作为
 	      list标签的数据源，如果是-1则忽略position属性
@@ -785,8 +789,29 @@
 			<name>start</name>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
+		<!-- 指定当前记录对象el表达式变量名称 -->
+		<attribute>
+			<name>var</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>pagesizevar</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>rowcountvar</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>offsetvar</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>loopvar</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		
 	</tag>
-	
 	<!--
 		功能：循环输出map中的数据，每次循环展示map中的一个对象，对象的属性通过cell标签输出
 		如果需要获取对应的属性的key可以通过mapkey标签获取
@@ -942,6 +967,25 @@
 		都可以展示value对象中包含的数据 -->
 		<attribute>
 			<name>keycell</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<!-- 指定当前记录对象el表达式变量名称 -->
+		<attribute>
+			<name>var</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		 
+		<attribute>
+			<name>rowcountvar</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		
+		<attribute>
+			<name>loopvar</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>mapkeyvar</name>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
@@ -1198,7 +1242,6 @@
 			<name>trim</name>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
-		
 		<attribute>
 			<name>requestKey</name>
 			<rtexprvalue>true</rtexprvalue>
@@ -1234,6 +1277,22 @@
 		-->
 		<attribute>
 			<name>currentcelltoColName</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>locale</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>userRequestLocale</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<!-- 
+		Africa/Abidjan, Africa/Accra, Africa/Addis_Ababa, Africa/Algiers, Africa/Asmara, Africa/Asmera, Africa/Bamako, Africa/Bangui, Africa/Banjul, Africa/Bissau, Africa/Blantyre, Africa/Brazzaville, Africa/Bujumbura, Africa/Cairo, Africa/Casablanca, Africa/Ceuta, Africa/Conakry, Africa/Dakar, Africa/Dar_es_Salaam, Africa/Djibouti, Africa/Douala, Africa/El_Aaiun, Africa/Freetown, Africa/Gaborone, Africa/Harare, Africa/Johannesburg, Africa/Juba, Africa/Kampala, Africa/Khartoum, Africa/Kigali, Africa/Kinshasa, Africa/Lagos, Africa/Libreville, Africa/Lome, Africa/Luanda, Africa/Lubumbashi, Africa/Lusaka, Africa/Malabo, Africa/Maputo, Africa/Maseru, Africa/Mbabane, Africa/Mogadishu, Africa/Monrovia, Africa/Nairobi, Africa/Ndjamena, Africa/Niamey, Africa/Nouakchott, Africa/Ouagadougou, Africa/Porto-Novo, Africa/Sao_Tome, Africa/Timbuktu, Africa/Tripoli, Africa/Tunis, Africa/Windhoek, America/Adak, America/Anchorage, America/Anguilla, America/Antigua, America/Araguaina, America/Argentina/Buenos_Aires, America/Argentina/Catamarca, America/Argentina/ComodRivadavia, America/Argentina/Cordoba, America/Argentina/Jujuy, America/Argentina/La_Rioja, America/Argentina/Mendoza, America/Argentina/Rio_Gallegos, America/Argentina/Salta, America/Argentina/San_Juan, America/Argentina/San_Luis, America/Argentina/Tucuman, America/Argentina/Ushuaia, America/Aruba, America/Asuncion, America/Atikokan, America/Atka, America/Bahia, America/Bahia_Banderas, America/Barbados, America/Belem, America/Belize, America/Blanc-Sablon, America/Boa_Vista, America/Bogota, America/Boise, America/Buenos_Aires, America/Cambridge_Bay, America/Campo_Grande, America/Cancun, America/Caracas, America/Catamarca, America/Cayenne, America/Cayman, America/Chicago, America/Chihuahua, America/Coral_Harbour, America/Cordoba, America/Costa_Rica, America/Creston, America/Cuiaba, America/Curacao, America/Danmarkshavn, America/Dawson, America/Dawson_Creek, America/Denver, America/Detroit, America/Dominica, America/Edmonton, America/Eirunepe, America/El_Salvador, America/Ensenada, America/Fort_Wayne, America/Fortaleza, America/Glace_Bay, America/Godthab, America/Goose_Bay, America/Grand_Turk, America/Grenada, America/Guadeloupe, America/Guatemala, America/Guayaquil, America/Guyana, America/Halifax, America/Havana, America/Hermosillo, America/Indiana/Indianapolis, America/Indiana/Knox, America/Indiana/Marengo, America/Indiana/Petersburg, America/Indiana/Tell_City, America/Indiana/Vevay, America/Indiana/Vincennes, America/Indiana/Winamac, America/Indianapolis, America/Inuvik, America/Iqaluit, America/Jamaica, America/Jujuy, America/Juneau, America/Kentucky/Louisville, America/Kentucky/Monticello, America/Knox_IN, America/Kralendijk, America/La_Paz, America/Lima, America/Los_Angeles, America/Louisville, America/Lower_Princes, America/Maceio, America/Managua, America/Manaus, America/Marigot, America/Martinique, America/Matamoros, America/Mazatlan, America/Mendoza, America/Menominee, America/Merida, America/Metlakatla, America/Mexico_City, America/Miquelon, America/Moncton, America/Monterrey, America/Montevideo, America/Montreal, America/Montserrat, America/Nassau, America/New_York, America/Nipigon, America/Nome, America/Noronha, America/North_Dakota/Beulah, America/North_Dakota/Center, America/North_Dakota/New_Salem, America/Ojinaga, America/Panama, America/Pangnirtung, America/Paramaribo, America/Phoenix, America/Port-au-Prince, America/Port_of_Spain, America/Porto_Acre, America/Porto_Velho, America/Puerto_Rico, America/Rainy_River, America/Rankin_Inlet, America/Recife, America/Regina, America/Resolute, America/Rio_Branco, America/Rosario, America/Santa_Isabel, America/Santarem, America/Santiago, America/Santo_Domingo, America/Sao_Paulo, America/Scoresbysund, America/Shiprock, America/Sitka, America/St_Barthelemy, America/St_Johns, America/St_Kitts, America/St_Lucia, America/St_Thomas, America/St_Vincent, America/Swift_Current, America/Tegucigalpa, America/Thule, America/Thunder_Bay, America/Tijuana, America/Toronto, America/Tortola, America/Vancouver, America/Virgin, America/Whitehorse, America/Winnipeg, America/Yakutat, America/Yellowknife, Antarctica/Casey, Antarctica/Davis, Antarctica/DumontDUrville, Antarctica/Macquarie, Antarctica/Mawson, Antarctica/McMurdo, Antarctica/Palmer, Antarctica/Rothera, Antarctica/South_Pole, Antarctica/Syowa, Antarctica/Troll, Antarctica/Vostok, Arctic/Longyearbyen, Asia/Aden, Asia/Almaty, Asia/Amman, Asia/Anadyr, Asia/Aqtau, Asia/Aqtobe, Asia/Ashgabat, Asia/Ashkhabad, Asia/Baghdad, Asia/Bahrain, Asia/Baku, Asia/Bangkok, Asia/Beirut, Asia/Bishkek, Asia/Brunei, Asia/Calcutta, Asia/Chita, Asia/Choibalsan, Asia/Chongqing, Asia/Chungking, Asia/Colombo, Asia/Dacca, Asia/Damascus, Asia/Dhaka, Asia/Dili, Asia/Dubai, Asia/Dushanbe, Asia/Gaza, Asia/Harbin, Asia/Hebron, Asia/Ho_Chi_Minh, Asia/Hong_Kong, Asia/Hovd, Asia/Irkutsk, Asia/Istanbul, Asia/Jakarta, Asia/Jayapura, Asia/Jerusalem, Asia/Kabul, Asia/Kamchatka, Asia/Karachi, Asia/Kashgar, Asia/Kathmandu, Asia/Katmandu, Asia/Khandyga, Asia/Kolkata, Asia/Krasnoyarsk, Asia/Kuala_Lumpur, Asia/Kuching, Asia/Kuwait, Asia/Macao, Asia/Macau, Asia/Magadan, Asia/Makassar, Asia/Manila, Asia/Muscat, Asia/Nicosia, Asia/Novokuznetsk, Asia/Novosibirsk, Asia/Omsk, Asia/Oral, Asia/Phnom_Penh, Asia/Pontianak, Asia/Pyongyang, Asia/Qatar, Asia/Qyzylorda, Asia/Rangoon, Asia/Riyadh, Asia/Saigon, Asia/Sakhalin, Asia/Samarkand, Asia/Seoul, Asia/Shanghai, Asia/Singapore, Asia/Srednekolymsk, Asia/Taipei, Asia/Tashkent, Asia/Tbilisi, Asia/Tehran, Asia/Tel_Aviv, Asia/Thimbu, Asia/Thimphu, Asia/Tokyo, Asia/Ujung_Pandang, Asia/Ulaanbaatar, Asia/Ulan_Bator, Asia/Urumqi, Asia/Ust-Nera, Asia/Vientiane, Asia/Vladivostok, Asia/Yakutsk, Asia/Yekaterinburg, Asia/Yerevan, Atlantic/Azores, Atlantic/Bermuda, Atlantic/Canary, Atlantic/Cape_Verde, Atlantic/Faeroe, Atlantic/Faroe, Atlantic/Jan_Mayen, Atlantic/Madeira, Atlantic/Reykjavik, Atlantic/South_Georgia, Atlantic/St_Helena, Atlantic/Stanley, Australia/ACT, Australia/Adelaide, Australia/Brisbane, Australia/Broken_Hill, Australia/Canberra, Australia/Currie, Australia/Darwin, Australia/Eucla, Australia/Hobart, Australia/LHI, Australia/Lindeman, Australia/Lord_Howe, Australia/Melbourne, Australia/NSW, Australia/North, Australia/Perth, Australia/Queensland, Australia/South, Australia/Sydney, Australia/Tasmania, Australia/Victoria, Australia/West, Australia/Yancowinna, Brazil/Acre, Brazil/DeNoronha, Brazil/East, Brazil/West, CET, CST6CDT, Canada/Atlantic, Canada/Central, Canada/East-Saskatchewan, Canada/Eastern, Canada/Mountain, Canada/Newfoundland, Canada/Pacific, Canada/Saskatchewan, Canada/Yukon, Chile/Continental, Chile/EasterIsland, Cuba, EET, EST5EDT, Egypt, Eire, Etc/GMT, Etc/GMT+0, Etc/GMT+1, Etc/GMT+10, Etc/GMT+11, Etc/GMT+12, Etc/GMT+2, Etc/GMT+3, Etc/GMT+4, Etc/GMT+5, Etc/GMT+6, Etc/GMT+7, Etc/GMT+8, Etc/GMT+9, Etc/GMT-0, Etc/GMT-1, Etc/GMT-10, Etc/GMT-11, Etc/GMT-12, Etc/GMT-13, Etc/GMT-14, Etc/GMT-2, Etc/GMT-3, Etc/GMT-4, Etc/GMT-5, Etc/GMT-6, Etc/GMT-7, Etc/GMT-8, Etc/GMT-9, Etc/GMT0, Etc/Greenwich, Etc/UCT, Etc/UTC, Etc/Universal, Etc/Zulu, Europe/Amsterdam, Europe/Andorra, Europe/Athens, Europe/Belfast, Europe/Belgrade, Europe/Berlin, Europe/Bratislava, Europe/Brussels, Europe/Bucharest, Europe/Budapest, Europe/Busingen, Europe/Chisinau, Europe/Copenhagen, Europe/Dublin, Europe/Gibraltar, Europe/Guernsey, Europe/Helsinki, Europe/Isle_of_Man, Europe/Istanbul, Europe/Jersey, Europe/Kaliningrad, Europe/Kiev, Europe/Lisbon, Europe/Ljubljana, Europe/London, Europe/Luxembourg, Europe/Madrid, Europe/Malta, Europe/Mariehamn, Europe/Minsk, Europe/Monaco, Europe/Moscow, Europe/Nicosia, Europe/Oslo, Europe/Paris, Europe/Podgorica, Europe/Prague, Europe/Riga, Europe/Rome, Europe/Samara, Europe/San_Marino, Europe/Sarajevo, Europe/Simferopol, Europe/Skopje, Europe/Sofia, Europe/Stockholm, Europe/Tallinn, Europe/Tirane, Europe/Tiraspol, Europe/Uzhgorod, Europe/Vaduz, Europe/Vatican, Europe/Vienna, Europe/Vilnius, Europe/Volgograd, Europe/Warsaw, Europe/Zagreb, Europe/Zaporozhye, Europe/Zurich, GB, GB-Eire, GMT, GMT0, Greenwich, Hongkong, Iceland, Indian/Antananarivo, Indian/Chagos, Indian/Christmas, Indian/Cocos, Indian/Comoro, Indian/Kerguelen, Indian/Mahe, Indian/Maldives, Indian/Mauritius, Indian/Mayotte, Indian/Reunion, Iran, Israel, Jamaica, Japan, Kwajalein, Libya, MET, MST7MDT, Mexico/BajaNorte, Mexico/BajaSur, Mexico/General, NZ, NZ-CHAT, Navajo, PRC, PST8PDT, Pacific/Apia, Pacific/Auckland, Pacific/Bougainville, Pacific/Chatham, Pacific/Chuuk, Pacific/Easter, Pacific/Efate, Pacific/Enderbury, Pacific/Fakaofo, Pacific/Fiji, Pacific/Funafuti, Pacific/Galapagos, Pacific/Gambier, Pacific/Guadalcanal, Pacific/Guam, Pacific/Honolulu, Pacific/Johnston, Pacific/Kiritimati, Pacific/Kosrae, Pacific/Kwajalein, Pacific/Majuro, Pacific/Marquesas, Pacific/Midway, Pacific/Nauru, Pacific/Niue, Pacific/Norfolk, Pacific/Noumea, Pacific/Pago_Pago, Pacific/Palau, Pacific/Pitcairn, Pacific/Pohnpei, Pacific/Ponape, Pacific/Port_Moresby, Pacific/Rarotonga, Pacific/Saipan, Pacific/Samoa, Pacific/Tahiti, Pacific/Tarawa, Pacific/Tongatapu, Pacific/Truk, Pacific/Wake, Pacific/Wallis, Pacific/Yap, Poland, Portugal, ROK, Singapore, SystemV/AST4, SystemV/AST4ADT, SystemV/CST6, SystemV/CST6CDT, SystemV/EST5, SystemV/EST5EDT, SystemV/HST10, SystemV/MST7, SystemV/MST7MDT, SystemV/PST8, SystemV/PST8PDT, SystemV/YST9, SystemV/YST9YDT, Turkey, UCT, US/Alaska, US/Aleutian, US/Arizona, US/Central, US/East-Indiana, US/Eastern, US/Hawaii, US/Indiana-Starke, US/Michigan, US/Mountain, US/Pacific, US/Pacific-New, US/Samoa, UTC, Universal, W-SU, WET, Zulu, EST, HST, MST, ACT, AET, AGT, ART, AST, BET, BST, CAT, CNT, CST, CTT, EAT, ECT, IET, IST, JST, MIT, NET, NST, PLT, PNT, PRT, PST, SST, VST
+		
+		 -->
+		<attribute>
+			<name>timeZone</name>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
@@ -1365,6 +1424,8 @@
 			<name>actual</name>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
+		
+		
 	</tag>
 	<!--
 		功能说明：从属性文件listdata.property中获取为分页和列表tag提供数据的类文件名（key为dataInfo属性指定的值）称串，
@@ -1462,7 +1523,8 @@
 			<name>actual</name>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
-		<!-- 
+		
+	<!-- 
 		用于设置获取集合，字符串长度的变量名称，可对Collection,ListInfo,String,Map，Array类型对象求长度操作
 	  
 	 length属性值带有前缀cell,request,session,pagecontext:
@@ -1491,7 +1553,6 @@
 			<name>evalbody</name>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
-		
 	</tag>
 	
 	<!--
@@ -1562,7 +1623,6 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
-	
 	
 	<!--
 		功能说明：值为true或者对象不为空，将返回true
@@ -1940,7 +2000,7 @@
 			<name>actual</name>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
-		<!-- 
+				<!-- 
 		用于设置获取集合，字符串长度的变量名称，可对Collection,ListInfo,String,Map，Array类型对象求长度操作
 	  
 	 length属性值带有前缀cell，request，session，pagecontext:
@@ -2098,7 +2158,6 @@
 			<name>expression</name>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
-		
 		<!--
 			指定正则表达式匹配模式
 		-->
@@ -2131,7 +2190,6 @@
 			<name>actual</name>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
-		
 		<attribute>
 			<name>expressionValue</name>
 			<rtexprvalue>true</rtexprvalue>
@@ -3364,7 +3422,6 @@
 		isLatest: true: 获得图片新闻频道下所有最近发布图片 false: 获得普通频道下所有发布的带主题图片的文档图片
 	-->
 	
-	
 	<tag>
 		<name>contextmenu</name>
 		<tagclass>com.frameworkset.common.tag.contextmenu.ContextMenuTag</tagclass>
@@ -3396,8 +3453,6 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
-	
-	
 	
 	<!-- 内容管理标签定义结束 -->
 	
@@ -3459,7 +3514,347 @@
 			<required>true</required>
 		</attribute>
 	</tag>
+	<!-- 
+	定义bboss mvc标签开始
+	 -->
+	 
+	 <tag>
+		<name>message</name>
+		<tag-class>org.frameworkset.web.tag.MessageTag</tag-class>
+		<body-content>JSP</body-content>
+		<description>
+			Retrieves the message with the given code, or text if code isn't resolvable.
+			The HTML escaping flag participates in a page-wide or application-wide setting
+			(i.e. by HtmlEscapeTag or a "defaultHtmlEscape" context-param in web.xml).
+		</description>
+		<attribute>
+			<name>message</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>A MessageSourceResolvable argument (direct or through JSP EL).
+				Fits nicely when used in conjunction with Spring's own validation error
+				classes which all implement the MessageSourceResolvable interface. For
+				example, this allows you to iterate over all of the errors in a form,
+				passing each error (using a runtime expression) as the value of this
+				'message' attribute, thus effecting the easy display of such error
+				messages.</description>
+		</attribute>
+		<attribute>
+			<name>code</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The code (key) to use when looking up the message.
+			If code is not provided, the text attribute will be used.</description>
+		</attribute>
+		<attribute>
+			<name>arguments</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Set optional message arguments for this tag, as a
+			(comma-)delimited String (each String argument can contain JSP EL),
+			an Object array (used as argument array), or a single Object (used
+			as single argument).</description>
+		</attribute>
+		<attribute>
+			<name>argumentSeparator</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The separator character to be used for splitting the
+			arguments string value; defaults to a 'comma' (',').</description>
+		</attribute>
+		<attribute>
+			<name>text</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Default text to output when a message for the given code
+			could not be found. If both text and code are not set, the tag will
+			output null.</description>
+		</attribute>
+		<attribute>
+			<name>var</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The string to use when binding the result to the page,
+			request, session or application scope. If not specified, the result
+			gets outputted to the writer (i.e. typically directly to the JSP).</description>
+		</attribute>
+		<attribute>
+			<name>scope</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The scope to use when exporting the result to a variable.
+			This attribute is only used when var is also set. Possible values are
+			page, request, session and application.</description>
+		</attribute>
+		<attribute>
+			<name>htmlEscape</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Set HTML escaping for this tag, as boolean value.
+			Overrides the default HTML escaping setting for the current page.</description>
+		</attribute>
+		<attribute>
+			<name>javaScriptEscape</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Set JavaScript escaping for this tag, as boolean value. Default is false.</description>
+		</attribute>
+		<!-- 从celltag继承的属性 开始-->
+		<attribute>
+			<name>colName</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>property</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		
+		<!--
+			查找祖先(list)索引
+		-->
+		<attribute>
+			<name>index</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<!--
+			输出日期格式 dateformat; 输出数字格式 numerformat;
+		-->
+		<attribute>
+			<name>dateformat</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>numerformat</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<!--
+			指定单元格输出的默认值
+			当前的值为null时，输出指定的默认值，
+			如果不指定默认值将直接输出null。
+		-->
+		<attribute>
+			<name>defaultValue</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		
+		<!--
+			求值表达式:如果设置表达式，将通过表达式求解cell标签的输出 表达式支持的基本操作有：冥，乘法，除法，求余，加/减，字符串的加操作
+			表达式支持的聚合操作有：求和，求平均值，计数 操作数：可以为变量，整数，小数，字符串
+			其中变量是指列表/分页/页面详细信息中的对象属性名称，为如下形式： {variable name} 表达式中用"{"和"}"来标识变量
+			例如： 2 * 2 2 + 2 * 3 2 - 2 / 3 2 - 3 % 2 2* {var1} / {var2}
+			sum({var1}) avg({var1}) count({var1}) 上述操作可以任意组合
+		-->
+		<attribute>
+			<name>expression</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		
+		
+		<attribute>
+			<name>actual</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<!-- trim:true false default false -->
+		<attribute>
+			<name>trim</name>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<!-- 从celltag继承的属性 结束-->
+	</tag>
 	
+	
+	
+	
+	
+	<tag>
+		<name>theme</name>
+		<tag-class>org.frameworkset.web.tag.ThemeTag</tag-class>
+		<body-content>JSP</body-content>
+		<description>
+			Retrieves the theme message with the given code, or text if code isn't resolvable.
+			The HTML escaping flag participates in a page-wide or application-wide setting
+			(i.e. by HtmlEscapeTag or a "defaultHtmlEscape" context-param in web.xml).
+		</description>
+		<attribute>
+			<name>message</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>A MessageSourceResolvable argument (direct or through JSP EL).</description>
+		</attribute>
+		<attribute>
+			<name>code</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The code (key) to use when looking up the message.
+			If code is not provided, the text attribute will be used.</description>
+		</attribute>
+		<attribute>
+			<name>arguments</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Set optional message arguments for this tag, as a
+			(comma-)delimited String (each String argument can contain JSP EL),
+			an Object array (used as argument array), or a single Object (used
+			as single argument).</description>
+		</attribute>
+		<attribute>
+			<name>argumentSeparator</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The separator character to be used for splitting the
+			arguments string value; defaults to a 'comma' (',').</description>
+		</attribute>
+		<attribute>
+			<name>text</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Default text to output when a message for the given code
+			could not be found. If both text and code are not set, the tag will
+			output null.</description>
+		</attribute>
+		<attribute>
+			<name>var</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The string to use when binding the result to the page,
+			request, session or application scope. If not specified, the result
+			gets outputted to the writer (i.e. typically directly to the JSP).</description>
+		</attribute>
+		<attribute>
+			<name>scope</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The scope to use when exporting the result to a variable.
+			This attribute is only used when var is also set. Possible values are
+			page, request, session and application.</description>
+		</attribute>
+		<attribute>
+			<name>htmlEscape</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Set HTML escaping for this tag, as boolean value.
+			Overrides the default HTML escaping setting for the current page.</description>
+		</attribute>
+		<attribute>
+			<name>javaScriptEscape</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Set JavaScript escaping for this tag, as boolean value. Default is false.</description>
+		</attribute>
+	</tag>
+	
+	<tag>
+		<name>error</name>
+		<tag-class>org.frameworkset.web.tag.ErrorTag</tag-class>
+		<body-content>JSP</body-content>
+		<description>
+			Retrieves the field error 
+		</description>
+		
+		<attribute>
+			<name>colName</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Set JavaScript escaping for this tag, as boolean value. Default is false.</description>
+		</attribute>
+		<attribute>
+			<name>arguments</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Set JavaScript escaping for this tag, as boolean value. Default is false.</description>
+		</attribute>
+		
+	</tag>
+	
+	<tag>
+		<name>errors</name>
+		<tag-class>org.frameworkset.web.tag.ErrorsTag</tag-class>
+		<body-content>JSP</body-content>
+		<description>
+			Retrieves the errors 
+		</description>
+		
+		
+		
+	</tag>
+	
+	<tag>
+		<name>globalerrors</name>
+		<tag-class>org.frameworkset.web.tag.GlobalErrorsTag</tag-class>
+		<body-content>JSP</body-content>
+		<description>
+			Retrieves the errors 
+		</description>
+	</tag>
+	 <tag>
+		<name>locale</name>
+		<tag-class>org.frameworkset.web.tag.LocaleTag</tag-class>
+		<body-content>JSP</body-content>
+		<description>
+			Retrieves the country locale code text .
+		</description>
+	</tag>
+	 <tag>
+		<name>dtoken</name>
+		<tag-class>org.frameworkset.web.token.DTokenTag</tag-class>
+		<body-content>JSP</body-content>
+		<description>
+			生成动态令牌标签，用来防止跨站伪造攻击
+		</description>
+		<attribute>
+			<name>element</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+					参数有4个值（如果没有指定默认为input类型）：
+				  json 输出json表达式，名称和值的分隔符默认为'号，如果要指定为"号，那么需要
+				  通过jsonsplit参数来指定				  
+				  input输出input hidden				  
+				  param(等号表达式)
+				  token-只生成令牌本身
+			</description>
+		</attribute>
+		<attribute>
+			<name>jsonsplit</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+			生成动态令牌标签，用来防止跨站伪造攻击
+		</description>
+		</attribute>
+		
+		<attribute>
+			<name>fid</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+				令牌所属窗体唯一标识，一个窗体只需要一个令牌，如果在同一个窗体
+			 中dttoken标签需要出现多次，比如在逻辑判断中出现多次，那么就需要指定
+			 fid属性，除此以外都不需要指定fid属性
+			</description>
+		</attribute>
+		
+		<attribute>
+			<name>cache</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+				标识是否在服务器端保存令牌，保存机制由tokenFilter的tokenstore参数指定
+			</description>
+		</attribute>
+	</tag>
+ 	<tag>
+		<name>assertdtoken</name>
+		<tag-class>org.frameworkset.web.token.AssertDTokenTag</tag-class>
+		<body-content>JSP</body-content>
+		<description>
+			用于在页面上判断令牌被客户端传回并且校验令牌是否正确
+			如果没有启用动态令牌机制，该标签无效
+			如果启用了，assertdtoken判断令牌是否被客户端传回并且校验令牌是否正确
+			如果没有传回则拒绝访问，如果传回的令牌已经失效则拒绝访问
+		</description>
+	</tag>		
+	<!-- 定义bboss mvc标签结束 -->
 	<!--
 		功能说明：判断字符串是否以另一个字符串开头，可以指定offset位置
 		如果判断成立，则执行标签体内容，否则不执行
@@ -3812,7 +4207,6 @@
 			<name>actual</name>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
-		
 		<!-- 
 		强制执行标签中的内容，配置yes/no标签使用，实现if-else逻辑
 		 -->
@@ -3821,7 +4215,8 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		
-	</tag>	
+		
+	</tag>
 	
 	<!--
 		功能说明：case标签，可以内嵌其他非case逻辑标签实现if-else if-else逻辑结构

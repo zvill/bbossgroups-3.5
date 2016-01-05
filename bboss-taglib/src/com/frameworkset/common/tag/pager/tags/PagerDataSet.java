@@ -37,7 +37,6 @@ package com.frameworkset.common.tag.pager.tags;
 import java.io.OutputStream;
 import java.sql.Blob;
 import java.sql.Clob;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -57,6 +56,8 @@ import javax.servlet.jsp.PageContext;
 import javax.servlet.jsp.tagext.Tag;
 
 import org.apache.log4j.Logger;
+import org.frameworkset.util.DataFormatUtil;
+import org.frameworkset.web.servlet.support.RequestContext;
 
 import com.frameworkset.common.poolman.SQLExecutor;
 import com.frameworkset.common.tag.exception.FormulaException;
@@ -301,6 +302,60 @@ public class PagerDataSet extends PagerTagSupport {
      * jquery内容选择器
      */
     private String selector;
+    /**
+     * 指定当前记录对象el表达式变量名称
+     */
+    private String var;
+    
+    /**
+     * 指定当前循环变量el表达式名称
+     */
+    private String loopvar;
+    
+    /**
+     * 存放map当前记录key变量名称
+     */
+    private String mapkeyvar;
+    /**
+     * 存放总记录数变量名称
+     */
+    private String rowcountvar;
+    /**
+    * 存放分页当前页面offset变量名称
+    */
+    private String offsetvar;
+    
+    public String getOffsetvar() {
+		return offsetvar;
+	}
+
+	public void setOffsetvar(String offsetvar) {
+		this.offsetvar = offsetvar;
+	}
+
+	public String getRowcountvar() {
+		return rowcountvar;
+	}
+
+	public void setRowcountvar(String rowcountvar) {
+		this.rowcountvar = rowcountvar;
+	}
+
+	public String getPagesizevar() {
+		return pagesizevar;
+	}
+
+	public void setPagesizevar(String pagesizevar) {
+		this.pagesizevar = pagesizevar;
+	}
+	private String pagesizevar;
+	public String getLoopvar() {
+		return loopvar;
+	}
+
+	public void setLoopvar(String loopvar) {
+		this.loopvar = loopvar;
+	}
 
 	public PagerDataSet() {
 
@@ -1179,17 +1234,61 @@ public class PagerDataSet extends PagerTagSupport {
 	 * @param columnid
 	 * @return Date
 	 */
-	public String getFormatDate(int rowid, int columnid, String format) {
+	public String getFormatDate(int rowid, int columnid, String format,String locale,boolean userRequestLocale,String timeZone) {
 		Object obj = getValue(rowid, columnid);
-		return formatDate(obj,format);
+		return formatDate(request,obj,format,  locale,  userRequestLocale,  timeZone);
 
 	}
-	public static String formatDate(Object data,String dateformat)
+	public static String formatDate(HttpServletRequest request,Object data,String dateformat,String locale,boolean userRequestLocale,String timeZone)
 	{
 		if (data == null)
 			return null;
-		SimpleDateFormat dateFormat = new SimpleDateFormat(dateformat);
+//		SimpleDateFormat dateFormat = new SimpleDateFormat(dateformat);
+		SimpleDateFormat dateFormat = null;
+		if(locale == null)
+		{
+			if(!userRequestLocale)
+				dateFormat = DataFormatUtil.getSimpleDateFormat(request,dateformat,(String)null,timeZone);
+			else
+				dateFormat = DataFormatUtil.getSimpleDateFormat(request,dateformat,request.getLocale(),timeZone);
+		}
+		else
+		{
+			dateFormat = DataFormatUtil.getSimpleDateFormat(request,dateformat,locale,timeZone);
+		}
 		
+		try {
+		    if(data instanceof Date)
+		    {
+    			Date date = (Date) data;
+    			return dateFormat.format(date);
+		    }
+		    else if(data instanceof Long)
+		    {
+		        long va = ((Long)data).longValue();
+		        if(va <= 0)
+		            return "";
+		        Date date = new Date(va);
+                return dateFormat.format(date);
+		    }
+		    else 
+            {
+                return data.toString();
+            }
+            
+		} catch (Exception e) {
+			// e.printStackTrace();
+			return data.toString();
+		}
+	}
+	
+	public static String formatDate(HttpServletRequest request,Object data,String dateformat)
+	{
+		if (data == null)
+			return null;
+//		SimpleDateFormat dateFormat = new SimpleDateFormat(dateformat);
+		 
+		SimpleDateFormat dateFormat = DataFormatUtil.getSimpleDateFormat(request,dateformat);
 		try {
 		    if(data instanceof Date)
 		    {
@@ -1238,9 +1337,9 @@ public class PagerDataSet extends PagerTagSupport {
 	 * @param colName
 	 * @return Date
 	 */
-	public String getFormatDate(int rowid, String colName, String format) {
+	public String getFormatDate(int rowid, String colName, String format,String locale,boolean userRequestLocale,String timeZone) {
 		Object obj = getValue(rowid, colName);
-		return formatDate(obj,format);
+		return formatDate(request,obj,format,  locale,  userRequestLocale,  timeZone);
 	}
 	
 	
@@ -1249,9 +1348,9 @@ public class PagerDataSet extends PagerTagSupport {
 	 * @param colName
 	 * @return Date
 	 */
-	public String getFormatDate(int rowid,  String format) {
+	public String getFormatDate(int rowid,  String format,String locale,boolean userRequestLocale,String timeZone) {
 		Object obj = getValue(rowid);
-		return formatDate(obj,format);
+		return formatDate(request,obj,format,  locale,  userRequestLocale,  timeZone);
 	}
 
 	/**
@@ -1269,9 +1368,9 @@ public class PagerDataSet extends PagerTagSupport {
 	 * @return Date
 	 */
 	public String getFormatDate(int rowid, String colName, String property,
-			String format) {
+			String format,String locale,boolean userRequestLocale,String timeZone) {
 		Object obj = getValue(rowid, colName, property);
-		return formatDate(obj,format);
+		return formatDate(request,obj,format,  locale,  userRequestLocale,  timeZone);
 	}
 
 	/**
@@ -1295,9 +1394,9 @@ public class PagerDataSet extends PagerTagSupport {
 	 */
 
 	public String getFormatDate(int rowid, int columnid, String property,
-			String format) {
+			String format,String locale,boolean userRequestLocale,String timeZone) {
 		Object obj = getValue(rowid, columnid, property);
-		return formatDate(obj,format);
+		return formatDate(request,obj,format,  locale,  userRequestLocale,  timeZone);
 
 	}
 
@@ -1363,14 +1462,16 @@ public class PagerDataSet extends PagerTagSupport {
 	public String getFormatData(int rowid, int columnid, String format) {
 		
 		Object data = getValue(rowid, columnid);
-		return formatData(data,format);
+		return formatData(request,data,format);
 	}
 	
-	public static String formatData(Object data,String dataformat)
+	public static String formatData(HttpServletRequest request,Object data,String dataformat)
 	{
 		if (data == null)
 			return null;
-		NumberFormat numerFormat = new DecimalFormat(dataformat);
+		
+		NumberFormat numerFormat = DataFormatUtil.getDecimalFormat(request,dataformat);
+//		NumberFormat numerFormat = new DecimalFormat(dataformat);
 		
 		// double value = dd.doubleValue();
 
@@ -1385,7 +1486,7 @@ public class PagerDataSet extends PagerTagSupport {
 	public String getFormatData(int rowid, String colName, String format) {
 		Object data = getValue(rowid, colName);
 
-		return formatData(data,format);
+		return formatData(request,data,format);
 	}
 	
 	
@@ -1396,7 +1497,7 @@ public class PagerDataSet extends PagerTagSupport {
 	 */
 	public String getFormatData(int rowid, String format) {
 		Object data = getValue(rowid);
-		return formatData(data,format);
+		return formatData(request,data,format);
 	}
 
 	/**
@@ -1407,7 +1508,7 @@ public class PagerDataSet extends PagerTagSupport {
 	public String getFormatData(int rowid, int columnid, String property,
 			String format) {
 		Object data = getValue(rowid, columnid, property);
-		return formatData(data,format);
+		return formatData(request,data,format);
 	}
 
 	/**
@@ -1418,7 +1519,7 @@ public class PagerDataSet extends PagerTagSupport {
 	public String getFormatData(int rowid, String colName, String property,
 			String format) {
 		Object data = getValue(rowid, colName, property);
-		return formatData(data,format);
+		return formatData(request,data,format);
 	}
 
 	/**
@@ -2246,24 +2347,13 @@ public class PagerDataSet extends PagerTagSupport {
 		return dataSet;
 	}
     public static int consumeCookie(String cookieid,int defaultsize,HttpServletRequest request,PagerContext pagerContext) {
-		
-		Cookie[] cookies = getPageCookies(request);
-		Cookie cookie;
-		
-		for (int i = 0; i < cookies.length; i++) {
-			cookie = cookies[i];
-			if (isPagerCookie(cookie)) {				
-				if (isCookieForThisPagerTag(cookie,cookieid,pagerContext)) {
-						try {
-							return Integer.parseInt(cookie.getValue());
-						} catch (Exception e) {
-							return defaultsize;
-						}
-					
-				}
-			}
+    	if(pagerContext != null && pagerContext.getId() != null)
+    		return RequestContext.consumeCookie(  cookieid,  defaultsize,  request,pagerContext.getId());//return RequestContext.isCookieForThisPagerTag(cookie, cookieid, pagerContext.getId());
+		else
+		{
+			return RequestContext.consumeCookie(  cookieid,  defaultsize,  request,null);
 		}
-		return defaultsize;
+		
 	}
 	
 	
@@ -2273,24 +2363,21 @@ public class PagerDataSet extends PagerTagSupport {
     public static  Cookie[] getPageCookies(HttpServletRequest request) {
 //		HttpServletRequest request = this.getHttpServletRequest();
 //        HttpSession session = request.getSession(false);
-		Cookie[] cookies = request.getCookies();
-		if (null == cookies) {
-			cookies = new Cookie[0];
-		}
-		return cookies;
+		 
+		return RequestContext.getPageCookies(request);
 	}
-	public static final String COOKIE_PREFIX = "pager.";
+	
 	public static  boolean isPagerCookie(final Cookie cookie) {
-		return 0 == cookie.getName().indexOf(COOKIE_PREFIX)	;
+		return RequestContext.isPagerCookie(cookie)	;
 	}
 	
 	public static  boolean isCookieForThisPagerTag(final Cookie cookie,String cookieid,PagerContext pagerContext) {
 		
 		if(pagerContext != null && pagerContext.getId() != null)
-			return cookie.getName().equals(cookieid);
+			return RequestContext.isCookieForThisPagerTag(cookie, cookieid, pagerContext.getId());
 		else
 		{
-			return cookie.getName().equals(cookieid);
+			return RequestContext.isCookieForThisPagerTag(cookie, cookieid, null);
 		}
 	}
 	
@@ -2373,7 +2460,7 @@ public class PagerDataSet extends PagerTagSupport {
 		else
 		{
 			pagerContext.setUrl(url);
-			cookieid = this.pagerContext.getId() == null ?COOKIE_PREFIX + baseUri :COOKIE_PREFIX + baseUri + "|" +this.pagerContext.getId();
+			cookieid = this.pagerContext.getId() == null ?RequestContext.COOKIE_PREFIX + baseUri :RequestContext.COOKIE_PREFIX + baseUri + "|" +this.pagerContext.getId();
 		
 			int defaultSize = consumeCookie(cookieid,maxPageItems,request,pagerContext);
 			pagerContext.setMaxPageItems(defaultSize);
@@ -2413,10 +2500,14 @@ public class PagerDataSet extends PagerTagSupport {
 
 		String t_desc = request.getParameter(desc_key);
 		boolean desc = false;
-		if (t_desc != null && t_desc.equals("false"))
-			desc = false;
-		else if (t_desc != null && t_desc.equals("true"))
-			desc = true;
+		if(t_desc != null)
+		{
+			if (t_desc.equals("false"))
+				desc = false;
+			else if (t_desc.equals("true"))
+				desc = true;
+			pagerContext.setDescfromrequest(true);
+		}
 
 		pagerContext.setDesc(desc);
 		// 设置排序关键字，首先通过request.getParameter获取
@@ -2481,7 +2572,7 @@ public class PagerDataSet extends PagerTagSupport {
 		DataInfo dataInfo = pagerContext.getDataInfo();
 		if (dataInfo == null)
 			return SKIP_BODY;
-		doDataLoading();
+		doDataLoading(false);
 		int size = this.size();
 		if(size > 0)
 		{
@@ -2496,7 +2587,9 @@ public class PagerDataSet extends PagerTagSupport {
 					return SKIP_BODY;
 				}
 			}
-
+			initCurrentValueObject();
+			this.putVarValue();
+			this.putListScoptVarValue();
 			return EVAL_BODY_INCLUDE;
 			
 		}
@@ -2504,8 +2597,19 @@ public class PagerDataSet extends PagerTagSupport {
 			return SKIP_BODY;
 
 	}
-
-	public void doDataLoading() {
+	public void initCurrentValueObject()
+	{
+		this.currentValueObject = this.getClassDataValue(rowid);
+	}
+	public void doDataLoading()
+	{
+		doDataLoading(true);
+	}
+	/**
+	 * cms文档发布时，需要在doDataLoading中初始化当前记录对象，否则会报异常
+	 * @param initcurrentObject
+	 */
+	public void doDataLoading(boolean initcurrentObject) {
 		/**
 		 * 得到页面上要显示的值对象中字段
 		 * 
@@ -2561,7 +2665,7 @@ public class PagerDataSet extends PagerTagSupport {
 		
 
 		if (size() > 0) {
-			this.currentValueObject = this.getClassDataValue(rowid);
+			
 			/**
 			 * 以下的代码对取到的数据进行排序
 			 */
@@ -2578,10 +2682,68 @@ public class PagerDataSet extends PagerTagSupport {
 			{
 				sortBy(sortKey.trim(), t_desc);
 			}
+			
+			if(initcurrentObject)
+			{
+				this.initCurrentValueObject();
+			}
 //			return EVAL_BODY_INCLUDE;
 		} 
 		else
 			rowid = -1;
+	}
+	
+	private void putVarValue()
+	{
+		if(currentValueObject != null)
+		{
+			if(this.var != null)
+				request.setAttribute(var, currentValueObject.getValueObject());
+			if(this.loopvar != null)
+				request.setAttribute(loopvar, this.getRowid());
+			if(this.mapkeyvar != null)
+				request.setAttribute(mapkeyvar, this.getMapKey());
+			
+		}
+	}
+	
+	private void putListScoptVarValue()
+	{	
+		if(pagesizevar != null)
+			request.setAttribute(this.pagesizevar, this.getPageSize());
+		if(offsetvar != null)
+			request.setAttribute(this.offsetvar, this.getOffset());
+		if(rowcountvar != null)
+			request.setAttribute(this.rowcountvar, this.getRowcount());
+		
+	}
+	private void removeVarValue()
+	{
+		if(this.var != null )
+		{
+			request.removeAttribute(var);
+		}
+		if(this.loopvar != null)
+		{
+			request.removeAttribute(loopvar);
+		}
+		if(this.pagesizevar != null)
+		{
+			request.removeAttribute(pagesizevar);
+		}
+		if(this.rowcountvar != null)
+		{
+			request.removeAttribute(rowcountvar);
+		}
+		if(this.offsetvar != null)
+		{
+			request.removeAttribute(offsetvar);
+		}
+		if(this.mapkeyvar != null)
+		{
+			request.removeAttribute(mapkeyvar);
+		}
+		 
 	}
 
 	/**
@@ -2636,10 +2798,13 @@ public class PagerDataSet extends PagerTagSupport {
 			rowid++;
 //			pageContext.setAttribute(this.getDataSetName(), this);
 			pageContext.setAttribute(this.getRowidName(), rowid + "");
-			this.currentValueObject = this.getClassDataValue(rowid);
+//			this.currentValueObject = this.getClassDataValue(rowid);
+			this.initCurrentValueObject();
+			putVarValue();
 			return EVAL_BODY_AGAIN;
 		} else {
 			this.currentValueObject = null;
+			removeVarValue();
 			return SKIP_BODY;
 		}
 	}
@@ -3548,6 +3713,14 @@ public class PagerDataSet extends PagerTagSupport {
 				this.formulas.clear();
 				formulas = null;
 			}
+			this.removeVarValue();
+			this.var = null;
+			this.loopvar = null;
+			this.pagesizevar = null;
+			this.rowcountvar = null;
+			this.offsetvar = null;
+			this.mapkeyvar = null;
+			
 		}
 		catch(Exception e)
 		{
@@ -3573,6 +3746,22 @@ public class PagerDataSet extends PagerTagSupport {
 
 	public void setStart(int start) {
 		this.start = start;
+	}
+
+	public String getVar() {
+		return var;
+	}
+
+	public void setVar(String var) {
+		this.var = var;
+	}
+
+	public String getMapkeyvar() {
+		return mapkeyvar;
+	}
+
+	public void setMapkeyvar(String mapkeyvar) {
+		this.mapkeyvar = mapkeyvar;
 	}
 
     

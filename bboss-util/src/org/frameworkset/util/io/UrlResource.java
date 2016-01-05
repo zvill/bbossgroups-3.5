@@ -24,6 +24,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 
+import org.apache.log4j.Logger;
 import org.frameworkset.util.Assert;
 import org.frameworkset.util.ResourceUtils;
 
@@ -41,7 +42,11 @@ import com.frameworkset.util.SimpleStringUtil;
  * @version 1.0
  */
 public class UrlResource extends AbstractResource {
-
+	private static Logger log = Logger.getLogger(UrlResource.class);
+	
+	private URLConnection con; 
+	private long totalsize;
+	private String filename;
 	/**
 	 * Original URL, used for actual access.
 	 */
@@ -111,6 +116,57 @@ public class UrlResource extends AbstractResource {
 		}
 	}
 
+	public void open() throws IOException
+	{
+		open(false) ;
+	}
+	public void open(boolean reopen) throws IOException
+	{
+		
+		if(con == null || reopen)
+		{
+			con = this.url.openConnection();
+			con.setUseCaches(false);
+			
+			String Content_Disposition = con.getHeaderField("Content-Disposition");
+			//attachment; filename=bboss.war
+			if(Content_Disposition != null )
+			{
+				if(Content_Disposition.startsWith("attachment;"))
+				{
+					String[] ps = Content_Disposition.split(";");
+					for(String p :ps )
+					{
+						p = p.trim();
+						if(p.startsWith("filename="))
+						{
+							this.filename = p.substring("filename=".length() );
+							if(filename.startsWith("\""))
+							{
+								filename = filename.substring(1);
+							}
+							if(filename.endsWith("\""))
+							{
+								filename = filename.substring(0,filename.length() - 1);
+							}
+						}
+					}
+				}
+			}
+				
+			
+			this.totalsize = getHeaderFieldLong("content-length",-1);
+			
+		}
+	}
+	
+	 public long getHeaderFieldLong(String name, long Default) {
+	        String value = con.getHeaderField(name);
+	        try {
+	            return Long.parseLong(value);
+	        } catch (Exception e) { }
+	        return Default;
+	    }
 
 	/**
 	 * This implementation opens an InputStream for the given URL.
@@ -121,8 +177,7 @@ public class UrlResource extends AbstractResource {
 	 * @see java.net.URLConnection#getInputStream()
 	 */
 	public InputStream getInputStream() throws IOException {
-		URLConnection con = this.url.openConnection();
-		con.setUseCaches(false);
+		open(true);
 		return con.getInputStream();
 	}
 
@@ -192,7 +247,17 @@ public class UrlResource extends AbstractResource {
 	 * @see java.io.File#getName()
 	 */
 	public String getFilename() {
-		return SimpleStringUtil.getFilename(this.url.getFile());
+		if(this.filename != null)
+			return this.filename;
+		try {
+			this.open();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			log.error("",e);
+			return filename = SimpleStringUtil.getFilename(this.url.getFile());
+		}
+		
+		return filename = SimpleStringUtil.getFilename(this.url.getFile());
 	}
 
 	/**
@@ -219,8 +284,28 @@ public class UrlResource extends AbstractResource {
 	}
 
 	public void release() {
-		
-		
+		this.con = null;
+		this.filename = null;
+		this.totalsize = 0;
 	}
+	
+	/**
+	 * This implementation checks the timestamp of the underlying File,
+	 * if available.
+	 * @see #getFile()
+	 */
+	public long contentLength() throws IOException {
+		if(this.con != null)
+			return this.totalsize;
+		else
+			return super.contentLength();
+	}
+
+	public long getTotalsize() {
+		return totalsize;
+	}
+	
+	
+	
 
 }

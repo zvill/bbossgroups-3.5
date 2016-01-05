@@ -41,6 +41,7 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 
 import org.apache.log4j.Logger;
+import org.frameworkset.web.servlet.support.RequestContext;
 
 import com.frameworkset.common.poolman.SQLExecutor;
 import com.frameworkset.common.tag.BaseTag;
@@ -422,7 +423,7 @@ public class PagerTag extends BaseTag implements FieldHelper, PagerInfo {
 		else
 		{
 			pagerContext.setUrl(url);
-			cookieid = this.pagerContext.getId() == null ?PagerDataSet.COOKIE_PREFIX + baseUri :PagerDataSet.COOKIE_PREFIX + baseUri + "|" +this.pagerContext.getId();
+			cookieid = this.pagerContext.getId() == null ?RequestContext.COOKIE_PREFIX + baseUri :RequestContext.COOKIE_PREFIX + baseUri + "|" +this.pagerContext.getId();
 		
 			int defaultSize = PagerDataSet.consumeCookie(cookieid,maxPageItems,request,pagerContext);
 			pagerContext.setCustomMaxPageItems(maxPageItems);
@@ -458,10 +459,14 @@ public class PagerTag extends BaseTag implements FieldHelper, PagerInfo {
 		String desc_key = pagerContext.getKey("desc");
 
 		String t_desc = request.getParameter(desc_key);
-		if (t_desc != null && t_desc.equals("false"))
-			desc = false;
-		else if (t_desc != null && t_desc.equals("true"))
-			desc = true;
+		if(t_desc != null)
+		{
+			if (t_desc.equals("false"))
+				desc = false;
+			else if (t_desc.equals("true"))
+				desc = true;
+			pagerContext.setDescfromrequest(true);
+		}
 
 		pagerContext.setDesc(desc);
 		// 设置排序关键字，首先通过request.getParameter获取

@@ -25,6 +25,7 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.Tag;
 
 import org.apache.log4j.Logger;
+import org.frameworkset.util.DataFormatUtil;
 
 import com.frameworkset.common.tag.exception.FormulaException;
 import com.frameworkset.common.tag.pager.model.Field;
@@ -34,7 +35,6 @@ import com.frameworkset.platform.cms.driver.htmlconverter.CmsLinkProcessorInf;
 import com.frameworkset.platform.cms.driver.htmlconverter.CmsLinkProcessorUtil;
 import com.frameworkset.platform.cms.driver.jsp.CMSServletRequest;
 import com.frameworkset.platform.cms.driver.jsp.InternalImplConverter;
-import com.frameworkset.tag.logic.CaseTag;
 import com.frameworkset.util.RegexUtil;
 import com.frameworkset.util.SimpleStringUtil;
 import com.frameworkset.util.StringUtil;
@@ -53,6 +53,9 @@ public class CellTag  extends PagerTagSupport {
 	protected String parameter;
 	private boolean currentcelltoColName=false;
 	private String usecurrentCellValuetoCellName;
+	private String locale;
+	private String timeZone = null;
+	private boolean userRequestLocale;
 	
 	public String getRequestKey()
 	{
@@ -255,22 +258,7 @@ public class CellTag  extends PagerTagSupport {
 	}
 	protected String getStringValue()
 	{
-		String outStr = null;
-//		if(!this.actualseted)
-//		{
-			
-			outStr = this.getOutStr();
-			
-				
-//		}
-//		else
-//		{
-//			outStr = (this.actual == null?null:String.valueOf(this.actual));
-//			if(trim && outStr != null)
-//			{
-//				outStr = outStr.trim();
-//			}
-//		}
+		String outStr =   this.getOutStr(); 
 		return outStr;
 	}
 	public int doStartTag() throws JspException {
@@ -279,7 +267,7 @@ public class CellTag  extends PagerTagSupport {
 		
 	    init();
 	   
-		String outStr = getStringValue();
+		String outStr =  this.getOutStr();
 		if(outStr != null)
 		{
 			if(getEncode() != null && getEncode().equals("true"))
@@ -421,7 +409,7 @@ public class CellTag  extends PagerTagSupport {
 			return dataSet.getFormatDate(
 				rowid,
 				colid,
-				getDateformat());
+				getDateformat(),  locale,  userRequestLocale,  timeZone);
 
 		}
 		return dataSet.getString(rowid, colid);
@@ -437,7 +425,7 @@ public class CellTag  extends PagerTagSupport {
 			return dataSet.getFormatDate(
 				rowid,
 				colid,
-				getDateformat());
+				getDateformat(),  locale,  userRequestLocale,  timeZone);
 
 		}
 		return dataSet.getValue(rowid, colid);
@@ -453,7 +441,7 @@ public class CellTag  extends PagerTagSupport {
 			return dataSet.getFormatDate(
 				rowid,
 				
-				getDateformat());
+				getDateformat(),  locale,  userRequestLocale,  timeZone);
 
 		}
 		Object value = dataSet.getObject(rowid);
@@ -472,7 +460,7 @@ public class CellTag  extends PagerTagSupport {
 			return dataSet.getFormatDate(
 				rowid,
 				
-				getDateformat());
+				getDateformat(),  locale,  userRequestLocale,  timeZone);
 
 		}
 		return dataSet.getObject(rowid);
@@ -489,14 +477,14 @@ public class CellTag  extends PagerTagSupport {
 	    {
 		    if (this.getNumerformat() != null) {
 
-			    NumberFormat numerFormat = new DecimalFormat(getNumerformat());
+			    NumberFormat numerFormat = DataFormatUtil.getDecimalFormat(getNumerformat());
 				if (obj == null)
 					return null;
 				return numerFormat.format(obj);
 			}
 
 			if (this.getDateformat() != null) {
-			    SimpleDateFormat dateFormat = new SimpleDateFormat(getDateformat());
+			    SimpleDateFormat dateFormat = DataFormatUtil.getSimpleDateFormat(getDateformat());
 				if (obj == null)
 					return null;
 				return dateFormat.format(obj);
@@ -521,14 +509,14 @@ public class CellTag  extends PagerTagSupport {
 	    {
 		    if (this.getNumerformat() != null) {
 
-			    NumberFormat numerFormat = new DecimalFormat(getNumerformat());
+			    NumberFormat numerFormat = DataFormatUtil.getDecimalFormat(getNumerformat());
 				if (obj == null)
 					return null;
 				return numerFormat.format(obj);
 			}
 
 			if (this.getDateformat() != null) {
-			    SimpleDateFormat dateFormat = new SimpleDateFormat(getDateformat());
+			    SimpleDateFormat dateFormat = DataFormatUtil.getSimpleDateFormat(getDateformat());
 				if (obj == null)
 					return null;
 				return dateFormat.format(obj);
@@ -561,7 +549,7 @@ public class CellTag  extends PagerTagSupport {
 				rowid,
 				colid,
 				property,
-				getDateformat());
+				getDateformat(),  locale,  userRequestLocale,  timeZone);
 
 		}
 		return dataSet.getString(rowid, colid, property);
@@ -586,7 +574,7 @@ public class CellTag  extends PagerTagSupport {
 					rowid,
 					colid,
 					property,
-					getDateformat());
+					getDateformat(),  locale,  userRequestLocale,  timeZone);
 
 			}
 			return dataSet.getObject(rowid, colid, property);
@@ -611,7 +599,7 @@ public class CellTag  extends PagerTagSupport {
 				rowid,
 				colName,
 				property,
-				getDateformat());
+				getDateformat(),  locale,  userRequestLocale,  timeZone);
 
 		}
 		return dataSet.getString(rowid, colName, property);
@@ -635,7 +623,7 @@ public class CellTag  extends PagerTagSupport {
 					rowid,
 					colName,
 					property,
-					getDateformat());
+					getDateformat(),  locale,  userRequestLocale,  timeZone);
 
 			}
 			return dataSet.getObject(rowid, colName, property);
@@ -647,7 +635,7 @@ public class CellTag  extends PagerTagSupport {
 		}
 
 		if (getDateformat() != null) {
-			return dataSet.getFormatDate(rowid, colName, getDateformat());
+			return dataSet.getFormatDate(rowid, colName, getDateformat(),  locale,  userRequestLocale,  timeZone);
 		}
 		return dataSet.getString(rowid, colName);
 	}
@@ -658,7 +646,7 @@ public class CellTag  extends PagerTagSupport {
 		}
 
 		if (getDateformat() != null) {
-			return dataSet.getFormatDate(rowid, colName, getDateformat());
+			return dataSet.getFormatDate(rowid, colName, getDateformat(),  locale,  userRequestLocale,  timeZone);
 		}
 		return dataSet.getObject(rowid, colName);
 	}
@@ -862,10 +850,10 @@ public class CellTag  extends PagerTagSupport {
 			{
 				Object data = (this.actual == null?getDefaultValue():this.actual);
 				if (this.getNumerformat() != null) {
-					return PagerDataSet.formatData(data,  getNumerformat());
+					return PagerDataSet.formatData(request,data,  getNumerformat());
 				}
 				else if (this.getDateformat() != null) {
-					return PagerDataSet.formatDate(data, getDateformat());
+					return PagerDataSet.formatDate(request,data, getDateformat(),  locale,  userRequestLocale,  timeZone);
 				}
 				else
 				{
@@ -886,12 +874,28 @@ public class CellTag  extends PagerTagSupport {
 						{
 						    try {
 						        Object data = t_formula.getValue();
-						        if(data != null && getNumerformat() != null)
+						        if(data != null )
 						        {
-						            NumberFormat numerFormat = new DecimalFormat(getNumerformat());
-						            outStr = numerFormat.format(data);
+						        	if(getNumerformat() != null)
+						        	{
+							            
+							            outStr = PagerDataSet.formatData(request,data,  getNumerformat());
+						        	}
+						        	else if(this.getDateformat() != null)
+						        	{
+						        		outStr = PagerDataSet.formatDate(request,data, getDateformat(),  locale,  userRequestLocale,  timeZone);
+						        	}
+						        	else
+						        	{
+						        		outStr = data;
+						        	}
+						        		
 						        }
-						        outStr = data;
+						        else
+						        {
+						        	
+						        	outStr = data;
+						        }
 				            } catch (FormulaException e) {
 				                //System.out.println(e.getMessage());
 				                log.debug(e.getMessage());
@@ -1315,6 +1319,9 @@ public class CellTag  extends PagerTagSupport {
 		this.usecurrentCellValuetoCellName = null;
 		this.currentcelltoColName = false;
 		this.currentDataSet = null;
+		timeZone = null;
+		this.locale = null;
+		this.userRequestLocale = false;
 		super.doFinally();
 	}
 	public int doEndTag() throws JspException
@@ -1410,5 +1417,35 @@ public class CellTag  extends PagerTagSupport {
 	public void setUsecurrentCellValuetoCellName(
 			String usecurrentCellValuetoCellName) {
 		this.usecurrentCellValuetoCellName = usecurrentCellValuetoCellName;
+	}
+
+
+	public String getLocale() {
+		return locale;
+	}
+
+
+	public void setLocale(String locale) {
+		this.locale = locale;
+	}
+
+
+	public boolean isUserRequestLocale() {
+		return userRequestLocale;
+	}
+
+
+	public void setUserRequestLocale(boolean userRequestLocale) {
+		this.userRequestLocale = userRequestLocale;
+	}
+
+
+	public String getTimeZone() {
+		return timeZone;
+	}
+
+
+	public void setTimeZone(String timeZone) {
+		this.timeZone = timeZone;
 	}
 }

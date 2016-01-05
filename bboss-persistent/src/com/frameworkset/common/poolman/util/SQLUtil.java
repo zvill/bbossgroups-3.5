@@ -1607,7 +1607,23 @@ public class SQLUtil{
             return SQLUtil.getSQLManager().statusCheck(dbname);
            
         }
+        public static void startPool(String poolname,String driver,String jdbcurl,String username,String password,String validationQuery)
+        {
+        	SQLManager.startPool(  poolname,  driver,  jdbcurl,  username,  password,  validationQuery);
+        }
+        public static void startPool(String poolname,String driver,String jdbcurl,String username,String password,String validationQuery,int fetchsize)
+        {
+        	SQLManager.startPool(  poolname,  driver,  jdbcurl,  username,  password,  validationQuery,fetchsize);
+        }
+        public static void startNoPool(String poolname,String driver,String jdbcurl,String username,String password,String validationQuery,int fetchsize)
+        {
+        	SQLManager.startNoPool(  poolname,  driver,  jdbcurl,  username,  password,  validationQuery, fetchsize);
+        }
         
+        public static void startNoPool(String poolname,String driver,String jdbcurl,String username,String password,String validationQuery)
+        {
+        	SQLManager.startNoPool(  poolname,  driver,  jdbcurl,  username,  password,  validationQuery);
+        }
         public static void startPool(String poolname,String driver,String jdbcurl,String username,String password,String readOnly,String validationQuery)
     	{
         	SQLManager.startPool(poolname, driver, jdbcurl, username, password, readOnly, validationQuery);
@@ -1643,6 +1659,34 @@ public class SQLUtil{
             		 usepool,
             		  external,
             		 externaljndiName ,showsql , encryptdbinfo      		
+            		);
+    	}
+        
+        
+        public static void startPool(String poolname,String driver,String jdbcurl,String username,String password,
+        		String readOnly,
+        		String txIsolationLevel,
+        		String validationQuery,
+        		String jndiName,   
+        		int initialConnections,
+        		int minimumSize,
+        		int maximumSize,
+        		boolean usepool,
+        		boolean  external,
+        		String externaljndiName        ,boolean showsql		,boolean encryptdbinfo,int fetchsize
+        		)
+    	{
+        	SQLManager.startPool( poolname, driver, jdbcurl, username, password,
+            		 readOnly,
+            		 txIsolationLevel,
+            		 validationQuery,
+            		 jndiName,   
+            		 initialConnections,
+            		 minimumSize,
+            		 maximumSize,
+            		 usepool,
+            		  external,
+            		 externaljndiName ,showsql , encryptdbinfo      		,fetchsize
             		);
     	}
         
@@ -1766,8 +1810,26 @@ public class SQLUtil{
     		return getPool(dbanme).getTablesFromDatabase(tableTypes,loadColumns);
     	}
     	
-    	public static List<TableMetaData> getTableMetaDatasFromDataBaseByPattern(String dbanme,String tableNamepattern,String[] tableTypes,boolean loadColumns) {
-    		return getPool(dbanme).getTablesFromDatabase(tableNamepattern,tableTypes,loadColumns);
+    	public static List<TableMetaData> getTableMetaDatasFromDataBaseByPattern(String dbname,String tableNamepattern,String[] tableTypes,boolean loadColumns) {
+    		return getPool(dbname).getTablesFromDatabase(tableNamepattern,tableTypes,loadColumns);
+    	}
+    	
+    	public static void increamentMaxTotalConnections(String dbname,int nums)
+    	{
+    		JDBCPool pool = getPool(dbname);
+    		if(pool != null)
+    			pool.increamentMaxTotalConnections( nums);
+    	}
+    	
+    	public static void refreshDatabaseMetaData(String dbname)
+    	{
+    		 
+    			try {
+    				getPool(dbname).refreshDatabaseMetaData();
+    			} catch (Exception e) {
+    				log.error("刷新数据库连接池"+dbname+"对应的db元数据失败:", e);
+    			}
+    		 
     	}
 
 }

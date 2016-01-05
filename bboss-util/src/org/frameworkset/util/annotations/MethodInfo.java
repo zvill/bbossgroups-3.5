@@ -81,8 +81,8 @@ public class MethodInfo {
 	private HttpMethod[] requestMethods;
 	private String[] paths;
 	private String[] pathPattern;
-	private String[] pathVariables;
-	private Integer[] pathVariablePositions;
+	private PathVariableInfo[] pathVariables;
+//	private Integer[] pathVariablePositions;
 	private boolean[] databind;
 	private String[] baseurls ;
 	/**
@@ -144,7 +144,7 @@ public class MethodInfo {
 		this.baseurls = typeLevelMapping != null?typeLevelMapping.value():null;
 		
 		this.paths = mapping != null?mapping.value():null;
-		this.pathPattern = buildPathPattern();
+		this.pathPattern = buildPathPatterns();
 		this.parserVariables();
 		this.parserInfo();
 //		genericParameterTypes();
@@ -171,7 +171,7 @@ public class MethodInfo {
 			this.requestMethods = mapping.method();
 		this.baseurls = baseurls;
 		this.paths = mapping != null?mapping.value():null;
-		this.pathPattern = buildPathPattern();
+		this.pathPattern = buildPathPatterns();
 		this.parserVariables();
 		this.parserInfo();
 //		genericParameterTypes();
@@ -297,36 +297,183 @@ public class MethodInfo {
 			return ;
 		String baseurl = this.baseurls != null && this.baseurls.length > 0?baseurls[0]:"";
 		String path = getRealPath(baseurl, paths[0]);
-		int len = path.length();
-		int index = path.indexOf('/');
-		List<Integer> poses = new ArrayList<Integer>();
-		List<String> variables = new ArrayList<String>();
-		int count = -1;
-		while(index != -1)
-		{		
-			if(index == len - 1)
-				break;
-			count ++;
-			if(path.charAt(index+1) == '{')
-			{
-				poses.add(count);
-				int endps = path.indexOf("}",index + 1);
-				variables.add(path.substring(index + 1 + 1, endps));
-			}
-			index = path.indexOf("/", index + 1);			
-		}
+//		int len = path.length();
+//		int index = path.indexOf('/');
+//		List<Integer> poses = new ArrayList<Integer>();
+//		List<PathVariableInfo> variables = new ArrayList<PathVariableInfo>();
+//		int count = -1;
+//		while(index != -1)
+//		{		
+//			if(index == len - 1)
+//				break;
+//			count ++;
+//			if(path.charAt(index+1) == '{')
+//			{
+//				poses.add(count);
+//				int endps = path.indexOf("}",index + 1);
+//				variables.add(path.substring(index + 1 + 1, endps));
+//			}
+//			index = path.indexOf("/", index + 1);			
+//		}
+//		
+//		if(poses.size() > 0)
+//		{
+//			
+//			this.pathVariables = new PathVariableInfo[variables.size()];
+//			for(int k = 0; k < variables.size(); k ++)
+//			{
+//				pathVariables[k] = variables.get(k);
+//			}
+//					
+//					
+//			this.pathVariablePositions = SimpleStringUtil.toIntArray(poses);
+//		}
 		
-		if(poses.size() > 0)
-		{
-			this.pathVariables = SimpleStringUtil.toStringArray(variables);
-			this.pathVariablePositions = SimpleStringUtil.toIntArray(poses);
-		}
+		parserPathdata(path);
 		
 			
 		
 		
 	}
-	private String[] buildPathPattern()
+	public void parserPathdata(String path)
+	{
+//		if(path.startsWith("//"))
+//			path = path.substring(2);
+//		else if(path.startsWith("/"))
+//			path = path.substring(1);
+		List<String> datas = new ArrayList<String>();
+//		List<Integer> poses = new ArrayList<Integer>();
+		List<PathVariableInfo> variables = new ArrayList<PathVariableInfo>();
+		int i = 0;
+		char c = ' ';
+		int end = path.length();
+		StringBuilder bu = new StringBuilder();
+		do
+		{
+			c = path.charAt(i);
+			if(c == '/')
+			{
+				if(bu.length() > 0)
+				{
+					datas.add(bu.toString());
+					bu.setLength(0);
+					
+				}
+				else 
+				{
+					if(i == end -1)
+					{
+//						datas.add("");
+					}
+					else if(i == 0){
+						
+					}						
+				}
+			}
+			else
+			{
+				bu.append(c);
+			}
+			i ++;
+			
+			
+			
+		}while(i < end);
+		if(bu.length() > 0)
+		{
+			datas.add(bu.toString());
+			bu = null;
+		}
+		for(int k = 0; k < datas.size(); k ++)
+		{
+			String data = datas.get(k);
+			if(data.charAt(0) == '{')
+			{
+				
+				int idx = data.lastIndexOf('}');
+				if(idx > 0)
+				{
+//					poses.add(k);
+					String temp = data.substring(1, idx);
+					PathVariableInfo v = new PathVariableInfo();
+					v.setVariable(temp);
+					v.setPostion(k);
+					if(idx == data.length() - 1)
+					{
+						
+					}
+					else
+					{
+						temp = data.substring(idx+1);
+						v.setConstantstr(temp);
+						//v.setLast(true);
+					}
+					variables.add(v);
+				}
+						
+			}
+		}
+		if(variables.size() > 0)
+		{
+			
+			this.pathVariables = new PathVariableInfo[variables.size()];
+			for(int k = 0; k < variables.size(); k ++)
+			{
+				pathVariables[k] = variables.get(k);
+			}
+					
+					
+//			this.pathVariablePositions = SimpleStringUtil.toIntArray(poses);
+		}
+	}
+	public static String buildPathPattern(String mappedPath)
+	{
+		return buildPathPattern(null,mappedPath);
+	}
+	public static String buildPathPattern(String baseurl,String mappedPath)
+	{
+		
+		StringBuilder pathUrl = new StringBuilder();
+		if(baseurl != null)
+			pathUrl.append(baseurl);
+		String[] tmp = mappedPath.split("/");
+//		pathUrl.append(tmp[0]);
+		for(int i = 1; i < tmp.length; i ++ )
+		{
+			
+			String data = tmp[i];
+			if(data.charAt(0) == '{')
+			{
+				
+				int idx = data.lastIndexOf('}');
+				if(idx > 0)
+				{					
+					String temp = data.substring(1, idx);					 
+					if(idx == data.length() - 1)
+					{
+						pathUrl.append("/*");
+					}
+					else
+					{
+						temp = data.substring(idx+1);
+						pathUrl.append("/*").append(temp);
+					}					 
+				}
+				else
+				{
+					pathUrl.append("/").append(data);
+				}
+						
+			}
+			else
+			{
+				pathUrl.append("/").append(data);
+			}
+			
+		}
+		return pathUrl.toString();
+	}
+	private String[] buildPathPatterns()
 	{
 		if(paths == null || paths.length == 0)
 			return null;
@@ -337,17 +484,18 @@ public class MethodInfo {
 			int k = 0;
 			for(String mappedPath:paths)
 			{
-				StringBuffer pathUrl = new StringBuffer();
-				String[] tmp = mappedPath.split("/");
-//				pathUrl.append(tmp[0]);
-				for(int i = 1; i < tmp.length; i ++ )
-				{
-					if(tmp[i].startsWith("{"))
-						pathUrl.append("/*");
-					else
-						pathUrl.append("/").append(tmp[i]);
-				}
-				pathPatterns[k] = pathUrl.toString();
+//				StringBuilder pathUrl = new StringBuilder();
+//				String[] tmp = mappedPath.split("/");
+////				pathUrl.append(tmp[0]);
+//				for(int i = 1; i < tmp.length; i ++ )
+//				{
+//					if(tmp[i].startsWith("{"))
+//						pathUrl.append("/*");
+//					else
+//						pathUrl.append("/").append(tmp[i]);
+//				}
+//				pathPatterns[k] = pathUrl.toString();
+				pathPatterns[k] = buildPathPattern( null,mappedPath);
 				k ++;
 			}
 		}
@@ -359,18 +507,19 @@ public class MethodInfo {
 			{				
 				for(String mappedPath:paths)
 				{
-					StringBuffer pathUrl = new StringBuffer();
-					pathUrl.append(baseurl);
-					String[] tmp = mappedPath.split("/");
-//					pathUrl.append(tmp[0]);
-					for(int i = 1; i < tmp.length; i ++ )
-					{
-						if(tmp[i].startsWith("{"))
-							pathUrl.append("/*");
-						else
-							pathUrl.append("/").append(tmp[i]);
-					}
-					pathPatterns[k] = pathUrl.toString();
+//					StringBuilder pathUrl = new StringBuilder();
+//					pathUrl.append(baseurl);
+//					String[] tmp = mappedPath.split("/");
+////					pathUrl.append(tmp[0]);
+//					for(int i = 1; i < tmp.length; i ++ )
+//					{
+//						if(tmp[i].startsWith("{"))
+//							pathUrl.append("/*");
+//						else
+//							pathUrl.append("/").append(tmp[i]);
+//					}
+//					pathPatterns[k] = pathUrl.toString();
+					pathPatterns[k] = buildPathPattern(baseurl, mappedPath);
 					k ++;
 				}
 			}
@@ -818,13 +967,13 @@ public class MethodInfo {
 		return pathPattern;
 	}
 
-	public String[] getPathVariables() {
+	public PathVariableInfo[] getPathVariables() {
 		return pathVariables;
 	}
 
-	public Integer[] getPathVariablePositions() {
-		return pathVariablePositions;
-	}
+//	public Integer[] getPathVariablePositions() {
+//		return pathVariablePositions;
+//	}
 
 	/**
 	 * @return the pagerMethod
@@ -910,6 +1059,16 @@ public class MethodInfo {
 
 	public AssertTicket getAssertTicket() {
 		return assertTicket;
+	}
+	
+	public static void main(String[] args)
+	{
+		String path = "/ap/bc/{v1}/{v2}.page";
+		
+		String path1 = "/ap/bc/{v1}/{v2}";
+		
+		String data = "/ap/bc/ss/dd.page";
+		
 	}
 
 }

@@ -49,6 +49,11 @@ public class CommonLauncher
     
     private static String resourcesdir = "/resources";    
     
+    private static String classes = "/classes";    
+    private static String webclasses = "/WebRoot/WEB-INF/classes";
+    
+    private static String weblib = "/WebRoot/WEB-INF/lib";
+    
     private static String propertfile = "/config.properties";
     
     
@@ -64,19 +69,36 @@ public class CommonLauncher
     private static  List<URL> alljars;
     public static String getProperty(String pro)
     {
-    	String value = null;
-    	if(properts != null)
-    		value = (String)properts.get(pro);
-    	return value;
+    	return getProperty(pro,true);
     }
     
     public static String getProperty(String pro,String defaultValue)
+    {
+    	return getProperty(pro,defaultValue,true);
+    }
+    
+    public static String getProperty(String pro,boolean trim)
+    {
+    	String value = null;
+    	if(properts != null)
+    		value = (String)properts.get(pro);
+    	if(value != null &&trim)
+    		value = value.trim();
+    	return value;
+    }
+    
+    public static String getProperty(String pro,String defaultValue,boolean trim)
     {
     	String value = null;
     	if(properts != null)
     		value = (String)properts.get(pro);
     	if(value == null)
     		return defaultValue;
+    	else
+    	{
+    		if(trim)
+    			value = value.trim();
+    	}
     	return value;
     }
     private static void loadConfig(File appDir) throws IOException
@@ -127,9 +149,16 @@ public class CommonLauncher
         
         
         File resourcesFile = new File(appDir, resourcesdir);
+        
+        File classesFile = new File(appDir, classes);
+        
+        File webclassesFile = new File(appDir, webclasses);
+        
+        
+        File weblibFile = new File(appDir, weblib);
        
         loadConfig( appDir);
-        loadPlugins(lib, resourcesFile);
+        loadPlugins(lib, resourcesFile,  classesFile,webclassesFile,weblibFile);
         
         
         URL classpathEntries[] = (URL[]) alljars.toArray(new URL[alljars.size()]);
@@ -138,7 +167,7 @@ public class CommonLauncher
         
         if (mainclass == null)
         {
-            System.err.println("Invalid main-class entry, cannot proceed.");
+            System.out.println("Invalid main-class entry, cannot proceed.");
             System.exit(1);
         }
         Class mainClass = cl.loadClass(mainclass);
@@ -149,13 +178,17 @@ public class CommonLauncher
         for (int i = 0; i < classpathEntries.length; i++)
         {
             URL url = classpathEntries[i];
-            System.err.println("ClassPath[" + i + "] = " + url);
+            System.out.println("ClassPath[" + i + "] = " + url);
         }
-        Method setAppdir = mainClass.getMethod("setAppdir", new Class[] {File.class});
-        if(setAppdir != null)
-        {
-        	setAppdir.invoke(null, new Object[] {appDir});
-        }
+        try {
+			Method setAppdir = mainClass.getMethod("setAppdir", new Class[] {File.class});
+			if(setAppdir != null)
+			{
+				setAppdir.invoke(null, new Object[] {appDir});
+			}
+		} catch (Exception e) {
+			System.out.println("ignore set Appdir variable for "+mainclass+":"+e.getMessage());
+		}
         Method method = mainClass.getMethod("main", new Class[] {String[].class});
         method.invoke(null, new Object[] {args});
     }
@@ -173,7 +206,12 @@ public class CommonLauncher
      * @throws IllegalArgumentException
      * @throws InstantiationException 
      */
-    public static void loadPlugins(File lib,File resourcesFile) throws MalformedURLException,
+    public static void loadPlugins(File lib,File resourcesFile,File classesFile ,
+    
+    File webclassesFile ,
+    
+    
+    File weblibFile ) throws MalformedURLException,
             ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException,
             IllegalAccessException, InvocationTargetException, InstantiationException
     {
@@ -183,7 +221,8 @@ public class CommonLauncher
         System.out.println(lib.getAbsolutePath());
         // 
         loadSubdirJars(lib, allpublicjars);
-        
+        if(weblibFile.exists())
+        	loadSubdirJars(weblibFile, allpublicjars);
        if(extlibs != null && extlibs.length > 0)
        {
     	   for(String ext:extlibs)
@@ -209,9 +248,11 @@ public class CommonLauncher
         }
         alljars.add(resourcesFile.toURI().toURL());
         
+        if(classesFile.exists())
+        	alljars.add(classesFile.toURI().toURL());
         
-        
-     
+        if(webclassesFile.exists())
+        	alljars.add(webclassesFile.toURI().toURL());
         
     }
 
@@ -295,7 +336,7 @@ public class CommonLauncher
             try
             {
                 File path = null;//new File(URLDecoder.decode(location.toExternalForm().substring(6), "UTF-8")).getParentFile();
-                if(!CommonLauncher.isLinux())
+                if(!CommonLauncher.isLinux() && !CommonLauncher.isOSX())
                 {
                 	path = new File(URLDecoder.decode(location.toExternalForm().substring(6), "UTF-8")).getParentFile();
                 }

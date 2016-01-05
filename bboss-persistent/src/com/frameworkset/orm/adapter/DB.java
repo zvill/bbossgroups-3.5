@@ -57,6 +57,7 @@ import com.frameworkset.common.poolman.handle.ValueExchange;
 import com.frameworkset.common.poolman.security.DBInfoEncrypt;
 import com.frameworkset.common.poolman.security.DESDBPasswordEncrypt;
 import com.frameworkset.common.poolman.util.JDBCPoolMetaData;
+import com.frameworkset.orm.adapter.DB.PagineSql;
 import com.frameworkset.orm.engine.model.Domain;
 import com.frameworkset.orm.engine.model.SchemaType;
 import com.frameworkset.orm.platform.Platform;
@@ -660,6 +661,14 @@ public abstract class DB implements Serializable, IDMethod,Platform
 		private long start = -1L;
 		private long end= -1L;
 		private boolean prepared = true;
+		private boolean rebuilded = false;
+		public boolean isRebuilded() {
+			return rebuilded;
+		}
+		public PagineSql setRebuilded(boolean rebuilded) {
+			this.rebuilded = rebuilded;
+			return this;
+		}
 		public PagineSql(String sql, long start, long end,long offset,int maxsize,boolean prepared) {
 			super();
 			this.sql = sql;
@@ -714,7 +723,7 @@ public abstract class DB implements Serializable, IDMethod,Platform
     public String getOracleLimitSelect(String selectSql , int limit,String rownum)
     {
 //        selectSql += " LIMIT " + limit;
-        StringBuffer ret = new StringBuffer();
+        StringBuilder ret = new StringBuilder();
         ret.append("select * from (")
         	.append(selectSql)
         	.append(") where ")
@@ -746,13 +755,13 @@ public abstract class DB implements Serializable, IDMethod,Platform
      */
 	 
 	public PagineSql getOracleDBPagineSql(String sql, long offset, int maxsize,String rownum,boolean prepared) {
-		StringBuffer ret = null;
+		StringBuilder ret = null;
 		if(prepared)
-			ret = new StringBuffer().append("select * from (")
+			ret = new StringBuilder().append("select * from (")
 									.append(sql)
 									.append(") where ").append(rownum).append(" between ? and ?");
 		else
-			ret = new StringBuffer("select * from (")
+			ret = new StringBuilder("select * from (")
 			.append(sql)
 			.append(") where ").append(rownum).append(" between ")
 			.append((offset + 1) + "")
@@ -955,7 +964,7 @@ public abstract class DB implements Serializable, IDMethod,Platform
 		{
 			if(concatString == null || concatString.length == 0)
 				return "";
-			StringBuffer ret = new StringBuffer();
+			StringBuilder ret = new StringBuilder();
 			boolean i = false;
 			for(String token : concatString)
 			{
@@ -976,7 +985,7 @@ public abstract class DB implements Serializable, IDMethod,Platform
 		
 		public String disableFK(String table,String FKName)
 		{
-			StringBuffer ret = new StringBuffer();
+			StringBuilder ret = new StringBuilder();
 			ret.append("alter table ").append(table).append(" disable constraint ").append(FKName);
 			
 			return ret.toString();
@@ -987,7 +996,7 @@ public abstract class DB implements Serializable, IDMethod,Platform
 		
 		public String enableFK(String table,String FKName,String column,String FKTable,String FKColumn)
 		{
-			StringBuffer ret = new StringBuffer();
+			StringBuilder ret = new StringBuilder();
 			ret.append("alter table ").append(table).append(" enable constraint ").append(FKName);
 			return ret.toString();
 		}
@@ -1179,5 +1188,59 @@ public abstract class DB implements Serializable, IDMethod,Platform
 				 		sqlbuilder.append( " t) bb where bb.rownum__ <=? and bb.rownum__ >=?");
 		        return sqlbuilder.toString();
 		    }
+		  
+		  public void setObject(PreparedDBUtil dbutil,int i, Object o) throws SQLException
+		  {
+			  dbutil._setObject(i, o);
+//			  if(o == null || o instanceof java.sql.Timestamp)
+//			  {
+//				  dbutil._setObject(i, o, Param.setObject_int_Object);
+//			  }
+//			  else if(o instanceof java.sql.Date)
+//			  {
+//				  o = new java.sql.Timestamp(((java.sql.Date)o).getTime());
+//				  dbutil.addParam(i, o, Param.setObject_int_Object);
+//			  }
+//			  else if(o instanceof java.util.Date)
+//			  {
+//				  o = new java.sql.Timestamp(((java.util.Date)o).getTime());
+//				  dbutil.addParam(i, o, Param.setObject_int_Object);
+//			  }
+//			  else
+//			  {
+//				  dbutil.addParam(i, o, Param.setObject_int_Object);
+//			  }
+			  
+		  }
+		  
+		  public PagineSql getDBPagineSql(String sql, long offset, int maxsize,boolean prepared,String orderby) {
+				
+			  return new PagineSql(sql,-1L,-1L,offset,maxsize,prepared);
+				 
+			}
+			
+			  public String getStringPagineSql(String sql,String orderby)
+			  {
+				 return sql;
+			  }
+			  public String getStringPagineSql(String schema,String tablename,String pkname ,String columns,String orderby)
+			    {
+				  
+				  StringBuilder newsql = new StringBuilder();
+				  newsql.append("SELECT ");
+				 	if(columns != null && ! columns.equals(""))
+				 	{
+				 		newsql.append( columns);
+				 	}
+				 	else
+				 		newsql.append("* ");
+				 	newsql.append(" from   ");
+				 	if(schema != null && !schema.equals(""))
+				 		newsql.append(schema).append(".");
+				 	newsql.append( tablename)
+					 ;
+					return newsql.toString();
+			    	
+			    } 
         
 }

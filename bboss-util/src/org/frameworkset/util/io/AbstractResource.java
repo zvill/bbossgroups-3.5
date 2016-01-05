@@ -16,14 +16,18 @@
 
 package org.frameworkset.util.io;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import org.apache.log4j.Logger;
 import org.frameworkset.util.ResourceUtils;
 
 
@@ -40,6 +44,9 @@ import org.frameworkset.util.ResourceUtils;
  * @version 1.0
  */
 public abstract class AbstractResource implements Resource {
+	protected volatile long savesize;
+	private static Logger log = Logger.getLogger(AbstractResource.class);
+	
 
 	/**
 	 * This implementation checks whether a File can be opened,
@@ -59,6 +66,7 @@ public abstract class AbstractResource implements Resource {
 				return true;
 			}
 			catch (Throwable isEx) {
+				log.error("",isEx);
 				return false;
 			}
 		}
@@ -185,6 +193,109 @@ public abstract class AbstractResource implements Resource {
 	public void release()
 	{
 		
+	}
+	
+	public  void savetofile(File destinctionFile,ResourceHandleListener<AbstractResource> listener) throws IOException
+	{
+		InputStream stFileInputStream = null;
+
+        FileOutputStream stFileOutputStream = null;
+        OutputStream dufferOput = null;
+        try
+        {
+//            makeFile(destinctionFile);
+        	if(listener != null)
+        	{
+        		try {
+        			listener.startEvent(this,destinctionFile);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        		
+        	}
+            stFileInputStream = this.getInputStream();
+            if(stFileInputStream == null)
+            	return;
+
+            stFileOutputStream = new FileOutputStream(destinctionFile);
+            dufferOput = new BufferedOutputStream(stFileOutputStream);
+            int arraySize = 1024;
+            byte buffer[] = new byte[arraySize];
+            int bytesRead;
+            while ((bytesRead = stFileInputStream.read(buffer)) != -1)
+            {
+            	
+            	dufferOput.write(buffer, 0, bytesRead);
+                this.savesize = savesize + bytesRead;
+                if(listener != null)
+            	{
+                	try {
+                		listener.handleDataEvent(this,destinctionFile);
+    				} catch (Exception e) {
+    					// TODO Auto-generated catch block
+    					e.printStackTrace();
+    				}
+            	}
+            }
+            dufferOput.flush();
+
+        }
+        catch (IOException e)
+        {
+            throw e;
+        }
+        finally
+        {
+        	if(listener != null)
+        	{
+        		try {
+					listener.endEvent(this,destinctionFile);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        	}
+            if (stFileInputStream != null)
+                try
+                {
+                    stFileInputStream.close();
+                }
+                catch (IOException e)
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            if(dufferOput != null)
+            {
+            	try {
+					dufferOput.close();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            }
+            if (stFileOutputStream != null)
+                try
+                {
+                    stFileOutputStream.close();
+                }
+                catch (IOException e)
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+        }
+	}
+	public  void savetofile(File destinctionFile) throws IOException
+    {
+
+		savetofile(destinctionFile,null);
+
+    }
+
+	public long getSavesize() {
+		return savesize;
 	}
 
 }
